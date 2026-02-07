@@ -1,15 +1,16 @@
-const express = require('express')
-const router = express.Router()
-
+import express from 'express'
 // import the gateKeeper 
-const upload = require('../middlewares/uploadMiddleware')
+import upload from '../middlewares/uploadMiddleware.js'
 
 // import the manager 
-const { analyzeVideo } = require('../controllers/aiController')
+import { analyzeVideo } from '../controllers/aiController.js'
+
+const router = express.Router()
+
 
 // now user is gonna send the data so we gonna need POST route for this  path's gonna be: /analyze
 
 router.post('/analyze', upload.single('video'), analyzeVideo )
 
 // export the router
-module.exports = router
+export default router;

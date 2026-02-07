@@ -1,6 +1,12 @@
-const multer = require('multer')
-const path = require('path')
-const fs = require('fs')
+import multer from 'multer'
+import path from 'path'
+import fs from 'fs'
+import { fileURLToPath } from 'url'
+
+// recreate __dirname for es modules and all 
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
+
 
 /* 
 myy current file is in: server/src/middlewares/
@@ -29,9 +35,8 @@ const storage = multer.diskStorage({
     }
 })
 
-
 const upload = multer({
     storage: storage
 })
 
-module.exports = upload
+export default upload
