@@ -14,7 +14,7 @@ const analyzeVideo = async (req, res) => {
 
 
         if(!req.file) {
-            res.status(400).json({error: "File is missing!!!....just like her feelings for yaaa!!!!"})
+            return res.status(400).json({error: "File is missing!!!....just like her feelings for yaaa!!!!"})
         }
 
         // if the file is still there that means multer does it job nicely
@@ -48,7 +48,7 @@ const analyzeVideo = async (req, res) => {
 
         // 3. Generate Content (Chat)
         const respone = await client.models.generateContent({
-            model: 'gemini-2.0-flash-lite',
+            model: 'gemini-2.5-flash',
             contents: [
                 {
                     role: 'user',
@@ -66,7 +66,7 @@ const analyzeVideo = async (req, res) => {
         // nice respone for them ig 
         res.status(200).json({
             message: "Success!!",
-            analysis: respone.text()
+            analysis: respone.text
         })
         // clean up the local file
         fs.unlinkSync(req.file.path)
