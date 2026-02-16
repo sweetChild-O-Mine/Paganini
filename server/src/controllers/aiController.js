@@ -11,11 +11,16 @@ const analyzeVideo = async (req, res) => {
 
     // orihianl file trackers 
     let originalPath = null
+    const totalStartTime = Date.now()
+
     let compressedPath = null
+
 
     try {
 
-        const client = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY })
+        const client = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY,
+            requestOptions: { timeout: 600000 }
+         })
 
 
         if(!req.file) {
@@ -26,20 +31,20 @@ const analyzeVideo = async (req, res) => {
         // if the file is still there that means multer does it job nicely
         console.log("1. File received: ", originalPath);
 
-        // start the process and upload to s3
-        console.log("...Starting s3 pipeline...");
+        // Checking if compression needed
+        console.log("...Checking if compression needed...");
         const result = await processAndUpload(originalPath, req.file.filename)
 
-        const { s3Url, pathForGemini, wasCompressed } = result
+        const { pathForGemini, wasCompressed } = result
 
         compressedPath = result.compressedPath
 
-        console.log("S# url:", s3Url);
         console.log("Will send to Gemini:", pathForGemini);
         console.log("was compressed", wasCompressed);
 
         // Uplaod to gemini 
         console.log("...Uploading to Gemini...");
+        const uploadStartTime = Date.now()
 
         const uploadResult = await client.files.upload({
             file: pathForGemini,
@@ -48,10 +53,13 @@ const analyzeVideo = async (req, res) => {
                 displayName: req.file.filename
             }
         })
+        
+        const uploadTime = ((Date.now() - uploadStartTime) / 1000).toFixed(2)
+        console.log(`2. Uploaded to Gemini in ${uploadTime} : Gemini URI: ${uploadResult.uri}`);
 
-        console.log("2. Uploaded to Gemini: Gemini URI",uploadResult.uri );
 
         // wait for gemini to procees the stuff
+        const processingStartTime = Date.now()
         let file = await client.files.get({name: uploadResult.name})
 
         while(file.state === "PROCESSING") {
@@ -59,6 +67,9 @@ const analyzeVideo = async (req, res) => {
             await new Promise((resolve) => setTimeout(resolve, 2000))
             file = await client.files.get({name: uploadResult.name})
         }
+
+        const processingTime = ((Date.now() - processingStartTime) / 1000).toFixed(2)
+        console.log(`   Processing completed in ${processingTime}s`);
 
         if(file.state === "FAILED") {
             throw new Error("Gemini processing failed. Even AI needs a coffee break sometimes.")
@@ -70,25 +81,54 @@ const analyzeVideo = async (req, res) => {
         console.log("Analyzing with mediaResolution: 'low'...");
 
         // 3. Generate Content (Chat)
-        const respone = await client.models.generateContent({
-            model: 'gemini-2.5-flash',
-            config: {
-                // so that it will eat less tokens 
-                mediaResolution: 'low'
-            },
-            contents: [
-                {
-                    role: 'user',
-                    parts: [
-                        {fileData: {fileUri: uploadResult.uri, mimeType: uploadResult.mimeType}},
-                        { text: "Analyze this video. Give me a title and 5 key timestamps." }
+        const analysisStartTime = Date.now()
+        let response = null
+
+        for (let attempt = 1; attempt <= 3; attempt++){
+            try {
+                response = await client.models.generateContent({
+                    model: 'gemini-2.5-flash',
+                    config: {
+                        // so that it will eat less tokens 
+                        // mediaResolution: 'low'
+                    },
+                    contents: [
+                        {
+                            role: 'user',
+                            parts: [
+                                {fileData: {fileUri: uploadResult.uri, mimeType: uploadResult.mimeType}},
+                                { text: "Give me english translation of each and every quotes shown in the video.....it should be in the format of....Actual Quote :- It's english translation...." }
+                            ]
+                        }
                     ]
+                })
+
+                console.log(`Attempt ${attempt} succeeded`);
+                break
+                
+            } catch (error) {
+                console.log(`Attempt ${attempt} failed: ${error.message}`);
+
+                if(attempt < 3) {
+                    console.log("Waiting 15 seconds before retry...");
+                    await new Promise(r => setTimeout(r, 15000))
+                } else {
+                    throw error
                 }
-            ]
-        })
+            }
+        }
 
         // send response 
         console.log("4. successs!!!");
+
+        const analysisTime = ((Date.now() - analysisStartTime) / 1000).toFixed(2)
+        const totalTime = ((Date.now() - totalStartTime) / 1000).toFixed(2)
+        
+        console.log(`4. Analysis completed in ${analysisTime}s`);
+        console.log(`═══════════════════════════════════════`);
+        console.log(`📊 TOTAL TIME: ${totalTime}s`);
+        console.log(`   Upload: ${uploadTime}s | Processing: ${processingTime}s | Analysis: ${analysisTime}s`);
+        console.log(`═══════════════════════════════════════`);
 
         // clean up all the files 
         console.log("Deleting this messy  stuff nowww!!!");
@@ -104,12 +144,11 @@ const analyzeVideo = async (req, res) => {
             console.log("Deleted Compressed file:", compressedPath);
         }
         
-        // nice respone for them ig 
+        // nice response for them ig 
         res.status(200).json({
             message: "Success!!",
-            videoUrl : s3Url,
             wasCompressed,
-            analysis: respone.text
+            analysis: response.text
         })
 
     } catch (error) {
