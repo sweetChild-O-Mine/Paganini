@@ -78,8 +78,6 @@ export const processAndUpload = async (originalPath, originalFilename) => {
 
         }
 
-
-
         return {
             pathForGemini,
             compressedPath,

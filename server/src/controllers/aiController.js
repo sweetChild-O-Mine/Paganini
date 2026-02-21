@@ -148,7 +148,12 @@ const analyzeVideo = async (req, res) => {
         res.status(200).json({
             message: "Success!!",
             wasCompressed,
-            analysis: response.text
+            analysis: response.text,
+            fileData: {
+                uri: uploadResult.uri,
+                name: uploadResult.name,
+                mimeType: uploadResult.mimeType
+            }
         })
 
     } catch (error) {
@@ -169,5 +174,45 @@ const analyzeVideo = async (req, res) => {
     }
 };
 
+const chatWithVideo = async (req, res) => {
+    try {
+        const {prompt, fileData} = req.body;
+
+        if(!fileData || !fileData.uri) {
+            return res.status(400).json({
+                error: "URI not found "
+            })
+        }
+
+        // make the client 
+        const client = new GoogleGenAI({apiKey: process.env.GEMINI_API_KEY})
+
+        const response = await client.models.generateContent({
+            model: 'gemini-2.5-flash',
+            contents: [
+                {
+                    role: 'user',
+                    parts: [
+                        {fileData: {
+                            fileUri: fileData.uri,
+                            mimeType: fileData.mimeType
+                        }},
+                        {text: prompt}
+                    ]
+                }
+            ]
+        })
+
+        res.status(200).json({
+            reply: response.text
+        })
+
+
+    } catch (error) {
+        console.error("Chat Error:", error);
+        res.status(500).json({ error: "Gemini crashed. Probably because of your prompt." });
+    }
+}
+
 // export this thing pweeeeasee
-export { analyzeVideo }
+export { analyzeVideo, chatWithVideo}
