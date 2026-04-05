@@ -97,7 +97,7 @@ const analyzeVideo = async (req, res) => {
                             role: 'user',
                             parts: [
                                 {fileData: {fileUri: uploadResult.uri, mimeType: uploadResult.mimeType}},
-                                { text: "Give me english translation of each and every quotes shown in the video.....it should be in the format of....Actual Quote :- It's english translation...." }
+                                { text: "translate the lyrcis of song in the reel....it should belike once one stanza compelted then that whoel stanza and then its transation. it should make sense" }
                             ]
                         }
                     ]

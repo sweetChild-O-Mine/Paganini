@@ -4,7 +4,7 @@ import dotenv from 'dotenv'
 import aiRoutes from './routes/aiRoutes.js'
 import path from 'path'
 import { fileURLToPath } from 'url'
-import connnectDB from './config/db.js'
+// import connnectDB from './config/db.js'
 
 
 // recreate __dirname
@@ -13,7 +13,7 @@ const __dirname = path.dirname(__filename)
 
 dotenv.config()
 
-connnectDB()
+// connnectDB()
 
 
 
