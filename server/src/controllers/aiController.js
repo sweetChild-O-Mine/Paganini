@@ -97,7 +97,7 @@ const analyzeVideo = async (req, res) => {
                             role: 'user',
                             parts: [
                                 {fileData: {fileUri: uploadResult.uri, mimeType: uploadResult.mimeType}},
-                                { text: "translate the lyrcis of song in the reel....it should belike once one stanza compelted then that whoel stanza and then its transation. it should make sense" }
+                                { text: "Give me a 3 line summary of the whole video. Baiscally it should give me the necesary info botu the video." }
                             ]
                         }
                     ]

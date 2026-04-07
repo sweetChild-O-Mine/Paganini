@@ -2,7 +2,7 @@ import React from 'react'
 
 const Navbar = () => {
   return (
-    <nav className=" bg-neutral-950 max-w-7xl mx-auto px-4 py-1 flex justify-between items-center ">
+    <nav className=" w-full mx-auto px-4 py-1 flex justify-between items-center ">
       {/* logo part */}
       <div className="text-xl font-bold ">
         Paganini
