@@ -51,38 +51,44 @@ export const AnalysisScreen = ({file, initialData}) => {
 
   return (
     // we'll use grid for division in 2 parts basically 
-    <div className="w-full h-full flex flex-col lg:flex-row p-4">
+    <div className="w-full h-full flex flex-col lg:flex-row px-1 py-4 overflow-hidden ">
 
         {/* left part of the screeen */}
-        <div className="border lg:w-[70%] border-neutral-800 rounded-2xl bg-black p-6 flex flex-col items-center justify-center relative ">
-            {/* first heading kinda thing  */}
-            <h2 className="text-xl font-bold mb-4 text-neutral-400">Video Preview</h2>
+        <div className="border border-neutral-800 lg:w-[72%] bg-black  flex flex-col items-center  ">
 
-            {/* if u got file then show the video */}
-            {file && (
-                <video 
-                className="w-full max-h-[85vh] rounded-lg shadow-lg outline-none"
-                controls
-                src={videoUrl}
-                />
-            )}
+                {/* first heading kinda thing  */}
+                <h2 className="font-semibold text-neutral-300 px-4 py-4 border font-mono bg-black/50  border-neutral-800 w-full ">Paganini preview</h2>
+
+
+            {/* video player */}
+            <div className="flex-1 w-full flex items-center justify-around p-2">
+                {/* if u got file then show the video */}
+                {file && (
+                    <video 
+                    className="w-full max-h-[85vh]  rounded-lg shadow-lg object-contain outline-none "
+                    controls
+                    src={videoUrl}
+                    />
+                )}
+
+            </div>
         </div>
 
         {/* the right partt */}
-        <div className="w-full lg:w-[30%] bg-[#0f0f0f] border-l border-white/10 flex flex-col rounded-xl ">
+        <div className="w-full lg:w-[28%] bg-[#0f0f0f] border-l  border-white/10 flex flex-col ">
 
             {/*heading kinda thing for chat box */}
-            <div className="p-4 border-b border-neutral-800 font-bold text-neutral-300 ">
-                Paganini's Analysis chat
+            <div className="p-4 border border-neutral-700 bg-black font-bold text-neutral-300 ">
+                Ai Assistent
             </div>
 
             {/* the part wehere message will be shown ig */}
-            <div className="flex-1 p-4 overflow-y-auto">
+            <div className="flex-1 p-4 max-h-[760px] overflow-y-auto element ">
                 
                 {messages.map((msg, index) => (
                     <div 
                     key={index}
-                    className={`p-3 mb-3 rounded-lg max-w-[85%] ${msg.role === 'user' ? 'bg-neutral-800 ml-auto' : 'bg-neutral-950 mr-auto border border-neutral-800 shadow-lg'}`} >
+                    className={`p-3 mb-3 text-sm rounded-lg max-w-[85%] ${msg.role === 'user' ? 'bg-blue-400 ml-auto' : 'bg-transparent mr-auto border border-neutral-950 text-neutral-100 shadow-lg'}`} >
                         <p className="text-sm shadow-md text-neutral-200">
                             {msg.text}
                         </p>
@@ -104,7 +110,7 @@ export const AnalysisScreen = ({file, initialData}) => {
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
                 type="text" className="flex-1 bg-neutral-800 text-white px-3 py-1.5 outline-none focus:border-neutral-500
-                rounded-lg
+                rounded-lg 
                 "
                 placeholder='Ask something about the video...'
                 />
