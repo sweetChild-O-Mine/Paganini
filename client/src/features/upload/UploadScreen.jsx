@@ -2,6 +2,7 @@ import React from 'react'
 import { useState, useCallback, useMemo} from 'react'
 import { useDropzone } from 'react-dropzone'
 import axios from 'axios'
+import { Button } from '@/components/ui/button'
 
 
 export const UploadScreen = ({onAnalysisComplete}) => {
@@ -104,17 +105,18 @@ export const UploadScreen = ({onAnalysisComplete}) => {
 
             {/* button to remove the wrong video if tis been uplaoded by mistake */}
             <div className="flex gap-4">
-              <button
+              <Button
                 onClick={() => setFile(null)}
-                className='px-6 py-2 bg-red-600 hover:bg-red-700 rounded-lg transition cursor-pointer'
+                variant='destructive'
+                className='px-6 py-6 bg-red-500/20 text-red-50 text-lg rounded-lg transition cursor-pointer'
               >
                 Remove
-              </button>
-              <button
+              </Button>
+              <Button
                 onClick={handleAnalyze} 
-                className="px-6 py-2 bg-neutral-800 hover:bg-neutral-900 rounded-lg transition font-bold cursor-pointer">
+                className="px-6 py-6 bg-neutral-700 hover:bg-neutral-800 text-lg rounded-lg transition font-bold cursor-pointer">
                   {isAnalyzing ? 'Analyzing...' : 'Analyze with Gemini!!' }
-              </button>
+              </Button>
 
             </div>
 

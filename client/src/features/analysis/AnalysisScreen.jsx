@@ -1,5 +1,8 @@
 import React, { useState, useMemo} from 'react'
 import axios from 'axios'
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+
 
 // managaer has sent someth that's why employee willrecienve it and he's doing it
 export const AnalysisScreen = ({file, initialData}) => {
@@ -50,7 +53,7 @@ export const AnalysisScreen = ({file, initialData}) => {
     }
 
   return (
-    // we'll use grid for division in 2 parts basically 
+    
     <div className="w-full h-full flex flex-col lg:flex-row px-1 py-4 overflow-hidden ">
 
         {/* left part of the screeen */}
@@ -88,8 +91,8 @@ export const AnalysisScreen = ({file, initialData}) => {
                 {messages.map((msg, index) => (
                     <div 
                     key={index}
-                    className={`p-3 mb-3 text-sm rounded-lg max-w-[85%] ${msg.role === 'user' ? 'bg-blue-400 ml-auto' : 'bg-transparent mr-auto border border-neutral-950 text-neutral-100 shadow-lg'}`} >
-                        <p className="text-sm shadow-md text-neutral-200">
+                    className={`p-3 mb-3 text-sm  rounded-lg max-w-[85%] ${msg.role === 'user' ? 'bg-neutral-200 text-neutral-900 ml-auto' : 'bg-neutral-950 mr-auto border border-neutral-700 text-neutral-100 shadow-lg'}`} >
+                        <p className="text-sm">
                             {msg.text}
                         </p>
                     </div>
@@ -104,22 +107,23 @@ export const AnalysisScreen = ({file, initialData}) => {
             </div>
 
             {/* user will type texts here */}
-            <div className="p-4 border-t border-e-neutral-800 flex gap-2">
-                <input 
+            <div className="p-4 border-t border-white/5 flex gap-3 bg-[#0a0a0a]">
+                <Input 
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
-                type="text" className="flex-1 bg-neutral-800 text-white px-3 py-1.5 outline-none focus:border-neutral-500
-                rounded-lg 
+                type="text" 
+                className="flex-1 bg-neutral-800 text-white px-3 py-1.5 outline-none border-neutral-700 focus:border-neutral-900
+                rounded-lg placeholder:text-neutral-500
                 "
                 placeholder='Ask something about the video...'
                 />
-                <button 
+                <Button 
+                variant=''
                 onClick={handleSendMessage}
-                className="bg-neutral-700 hover:bg-neutral-800 px-6 py-2 rounded-lg font-bold transform cursor-pointer">
-
+                className="px-6 cursor-pointer font-semibold">
                     Send
-                </button>
+                </Button>
             </div>
             
         </div>
