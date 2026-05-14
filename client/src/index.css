@@ -3,6 +3,10 @@
 @import "shadcn/tailwind.css";
 @import "@fontsource-variable/geist";
 
+
+@plugin "@tailwindcss/typography";
+
+
 @custom-variant dark (&:is(.dark *));
 
 /* Apply to the element you want to hide the scrollbar for (e.g., .container or body) */
@@ -139,3 +143,17 @@
     @apply font-sans;
   }
 }
+
+@layer utilities {
+  /* Chrome, Safari and Opera */
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* IE, Edge and Firefox */
+  .no-scrollbar {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+  }
+}
+

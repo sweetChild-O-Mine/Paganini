@@ -16,9 +16,9 @@ function App() {
   return (
     <>
     {/* the main outer div */}
-      <div className="bg-neutral-900 min-h-screen w-full text-white flex flex-col items-center overflow-hidden">
+      <div className="bg-neutral-900 h-screen w-full text-white flex flex-col items-center overflow-hidden">
         {/* container will wrapp all of our section into it and cneter em */}
-        <Container className=' ' >
+        <Container className='border-none ' >
           <Navbar />
         </Container>
 

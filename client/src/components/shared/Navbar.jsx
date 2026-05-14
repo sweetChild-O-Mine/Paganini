@@ -10,7 +10,7 @@ const Navbar = () => {
       
       {/* right side thing */}
       <div >
-        <button className="border px-2 py-0.5 rounded-sm cursor-pointer">
+        <button className="border px-2 py-.5 rounded-sm cursor-pointer">
           Login
         </button>
       </div>
