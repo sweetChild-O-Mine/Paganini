@@ -2,7 +2,7 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 @import "@fontsource-variable/geist";
-
+@import url('https://fonts.googleapis.com/css2?family=Felipa&family=Prata&display=swap');
 
 @plugin "@tailwindcss/typography";
 
@@ -157,3 +157,15 @@
   }
 }
 
+.prata-regular {
+  font-family: "Prata", serif;
+  font-weight: 400;
+  font-style: normal;
+}
+
+
+.felipa-regular {
+  font-family: "Felipa", serif;
+  font-weight: 400;
+  font-style: normal;
+}

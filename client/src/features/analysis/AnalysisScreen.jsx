@@ -84,7 +84,7 @@ export const AnalysisScreen = ({file, initialData}) => {
 
             {/*heading kinda thing for chat box */}
             <div className="font-semibold text-neutral-300 px-6 py-4 border-b border-white/5 flex items-center h-14 bg-[#0a0a0a] ">
-                Ai Assistent
+                Ai Assistant
             </div>
 
             {/* the part wehere message will be shown ig */}

@@ -18,9 +18,9 @@ function App() {
     {/* the main outer div */}
       <div className="bg-neutral-900 h-screen w-full text-white flex flex-col items-center overflow-hidden">
         {/* container will wrapp all of our section into it and cneter em */}
-        <Container className='border-none ' >
+        {/* <Container className='border-none ' > */}
           <Navbar />
-        </Container>
+        {/* </Container> */}
 
         {/* <Container className='flex-1 mt-10 border' > */}
 
