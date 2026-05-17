@@ -3,6 +3,7 @@ import { useState, useCallback, useMemo} from 'react'
 import { useDropzone } from 'react-dropzone'
 import axios from 'axios'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 
 
 export const UploadScreen = ({onAnalysisComplete}) => {
@@ -12,6 +13,8 @@ export const UploadScreen = ({onAnalysisComplete}) => {
 
   // state for loader
   const [isAnalyzing, setIsAnalyzing] = useState(false)
+
+  const [videoLink, setVideoLink] = useState('')
 
   const videoUrl = useMemo(() => {
     if(file) return URL.createObjectURL(file)
@@ -137,41 +140,81 @@ export const UploadScreen = ({onAnalysisComplete}) => {
 
             </div>
           ) : (
-            // if file aint there then show the fking dropzone
-            // DROPZONE are it izzzzz
-            <div
-              {...getRootProps()}
-              className={`border-2 border-dotted border-gray-600 rounded-2xl h-[300px] flex flex-col items-center justify-center cursor-pointer transition-all p-4 duration-300
-              ${isDragActive ? 'border-white/40 bg-white/10' : 'border-neutral-700 hover:border-neutral-500 hover:bg-neutral-600/5'}
-              `}>
+            
+            // new wrapper here 
+            <div className="w-full flex flex-col">
 
-              {/* put this getInputProps on this invisble input thing */}
-              <input {...getInputProps()} />
-              {/* if some nigga's trying to drag then change the text please */}
+              {/*               // if file aint there then show the fking dropzone
+              // DROPZONE are it izzzzz */}
 
-              <div className="w-16 h-16 bg-neutral-900 rounded-full flex items-center justify-center mb-6 shadow-lg border border-white/5 ">
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLineJoin="round" className="text-neutral-500">
-                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                      <polyline points="17 8 12 3 7 8"/>
-                      <line x1="12" y1="3" x2="12" y2="15"/>
-                  </svg> 
+
+              <div
+                {...getRootProps()}
+                className={`border-2 border-dotted border-gray-600 rounded-2xl h-[300px] flex flex-col items-center justify-center cursor-pointer transition-all p-4 duration-300
+                ${isDragActive ? 'border-white/40 bg-white/10' : 'border-neutral-700 hover:border-neutral-500 hover:bg-neutral-600/5'}
+                `}>
+
+                {/* put this getInputProps on this invisble input thing */}
+                <input {...getInputProps()} />
+                {/* if some nigga's trying to drag then change the text please */}
+
+                <div className="w-16 h-16 bg-neutral-900 rounded-full flex items-center justify-center mb-6 shadow-lg border border-white/5 ">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLineJoin="round" className="text-neutral-500">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                        <polyline points="17 8 12 3 7 8"/>
+                        <line x1="12" y1="3" x2="12" y2="15"/>
+                    </svg> 
+                </div>
+
+                {/* cutsom textss */}
+                {isDragActive ? (
+                  <p className='text-2xl text-white/30 font-medium '> Drop the video here... </p>
+                ) : (
+                    <div className="text-center">
+                    
+                      <p className='text-xl text-neutral-400 font-semibold mb-2'>Click or drag video to upload</p>
+
+                      <p className="text-sm text-neutral-500">
+                        MP4, WebM, or OGG up to 2GB
+                      </p>
+
+                    </div>
+
+                )}
               </div>
 
-              {/* cutsom textss */}
-              {isDragActive ? (
-                <p className='text-2xl text-white/30 font-medium '> Drop the video here... </p>
-              ) : (
-                  <div className="text-center">
+              {/* new link input from here */}
+              <div className="w-full mt-6 py-4">
+                {/* Divider kindathing */}
+                <div className="relative flex items-center py-4">
+                  <div className="grow border-t border-neutral-700/50" />
+                  <span className="flex shrink-0 mx-4 text-neutral-500 text-sm font-medium ">
+                    OR PASTE A LINK
+                  </span>
+                  <div className="grow border-t border-neutral-700/50"/>
+                </div>
+
+                {/* main input box  */}
+                <div className="flex gap-3 mt-2">
+                  <input
+                   type="url"
+                   placeholder='Paste YouTube or Instagram link here...'
+                   className="flex-1 bg-white/5 border border-white/10 text-white/95 rounded-xl h-12 px-4 focus-visible:ring-1 focus-visible:ring-neutral-900 text-base"
+                   value={videoLink}
+                   onChange={(e) => setVideoLink(e.target.value)}
+                   />
+
+                  <Button 
+                      className="h-12 px-6 rounded-xl bg-white text-black font-semibold hover:bg-neutral-200 transition-all shadow-[0_0_15px_rgba(255,255,255,0.1)] cursor-pointer"
+                      onClick={() => alert("Backend pending for links! " + videoLink)}
+                  >
+                      Analyze Link
+                  </Button>
+
+                </div>
                   
-                    <p className='text-xl text-neutral-400 font-semibold mb-2'>Click or drag video to upload</p>
+              </div>
 
-                    <p className="text-sm text-neutral-500">
-                      MP4, WebM, or OGG up to 2GB
-                    </p>
-
-                  </div>
-
-              )}
             </div>
           )}
 
