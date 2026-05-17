@@ -1,5 +1,10 @@
 import React, { useState, useMemo} from 'react'
 import axios from 'axios'
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import ReactMarkdown from 'react-markdown';
+
+
 
 // managaer has sent someth that's why employee willrecienve it and he's doing it
 export const AnalysisScreen = ({file, initialData}) => {
@@ -50,14 +55,14 @@ export const AnalysisScreen = ({file, initialData}) => {
     }
 
   return (
-    // we'll use grid for division in 2 parts basically 
-    <div className="w-full h-full flex flex-col lg:flex-row px-1 py-4 overflow-hidden ">
+    
+    <div className="w-full h-full flex flex-col lg:flex-row overflow-hidden ">
 
         {/* left part of the screeen */}
-        <div className="border border-neutral-800 lg:w-[72%] bg-black  flex flex-col items-center  ">
+        <div className=" lg:w-[72%] bg-black  flex flex-col items-center  ">
 
                 {/* first heading kinda thing  */}
-                <h2 className="font-semibold text-neutral-300 px-4 py-4 border font-mono bg-black/50  border-neutral-800 w-full ">Paganini preview</h2>
+                <h2 className="font-semibold text-neutral-300 px-6 py-4 border-b border-white/5  bg-[#0a0a0a] w-full flex items-center h-14 ">Paganini preview</h2>
 
 
             {/* video player */}
@@ -75,23 +80,28 @@ export const AnalysisScreen = ({file, initialData}) => {
         </div>
 
         {/* the right partt */}
-        <div className="w-full lg:w-[28%] bg-[#0f0f0f] border-l  border-white/10 flex flex-col ">
+        <div className="w-full lg:w-[28%] bg-[#0f0f0f]  flex flex-col border-l border-white/5 h-full overflow-hidden  ">
 
             {/*heading kinda thing for chat box */}
-            <div className="p-4 border border-neutral-700 bg-black font-bold text-neutral-300 ">
-                Ai Assistent
+            <div className="font-semibold text-neutral-300 px-6 py-4 border-b border-white/5 flex items-center h-14 bg-[#0a0a0a] ">
+                Ai Assistant
             </div>
 
             {/* the part wehere message will be shown ig */}
-            <div className="flex-1 p-4 max-h-[760px] overflow-y-auto element ">
+            <div className="flex-1 p-4 overflow-y-auto no-scrollbar  ">
                 
                 {messages.map((msg, index) => (
                     <div 
                     key={index}
-                    className={`p-3 mb-3 text-sm rounded-lg max-w-[85%] ${msg.role === 'user' ? 'bg-blue-400 ml-auto' : 'bg-transparent mr-auto border border-neutral-950 text-neutral-100 shadow-lg'}`} >
-                        <p className="text-sm shadow-md text-neutral-200">
-                            {msg.text}
-                        </p>
+                    className={`p-3 mb-3 text-sm  rounded-lg max-w-[85%] ${msg.role === 'user' ? 'bg-neutral-200 text-neutral-900 ml-auto' : 'bg-neutral-950 mr-auto border border-neutral-700 text-neutral-100 shadow-lg'}`} >
+                        {/* magic beginsss */}
+                        <div className={`prose max-w-none text-sm leading-relaxed
+                            ${msg.role === 'ai' ? 'prose-invert' : 'text-black' }
+                            `}>
+                            <ReactMarkdown>
+                                {msg.text}
+                            </ReactMarkdown>
+                        </div>
                     </div>
                 ))}
 
@@ -104,22 +114,23 @@ export const AnalysisScreen = ({file, initialData}) => {
             </div>
 
             {/* user will type texts here */}
-            <div className="p-4 border-t border-e-neutral-800 flex gap-2">
-                <input 
+            <div className="p-4 border-t border-white/5 flex gap-3 bg-[#0a0a0a]">
+                <Input 
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
-                type="text" className="flex-1 bg-neutral-800 text-white px-3 py-1.5 outline-none focus:border-neutral-500
-                rounded-lg 
+                type="text" 
+                className="flex-1 bg-neutral-800 text-white px-3 py-1.5 outline-none border-neutral-700 focus:border-neutral-900
+                rounded-lg placeholder:text-neutral-500
                 "
                 placeholder='Ask something about the video...'
                 />
-                <button 
+                <Button 
+                variant='default'
                 onClick={handleSendMessage}
-                className="bg-neutral-700 hover:bg-neutral-800 px-6 py-2 rounded-lg font-bold transform cursor-pointer">
-
+                className="px-6 cursor-pointer font-semibold">
                     Send
-                </button>
+                </Button>
             </div>
             
         </div>
