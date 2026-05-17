@@ -64,6 +64,36 @@ export const UploadScreen = ({onAnalysisComplete}) => {
 
 
   }
+  
+  const handleLinkAnalyze = async () => {
+
+    // check if vieolink is actually there or not
+    if(!videoLink.trim()) return;
+
+    setIsAnalyzing(true)
+    try {
+      // now we send normla json data here 
+      const response = await axios.post('http://localhost:3000/api/ai/analyze-url', {
+        videoLink: videoLink
+      });
+      
+      console.log("Link Analysis Response:", response.data)
+
+      // now pass the data to app.jsx
+      onAnalysisComplete(null, response.data)
+
+
+    } catch (error) {
+      
+      console.log("Error analyzing link:", error)
+
+      alert("Failed to analyze link. Check the console.")
+
+    } finally {
+      setIsAnalyzing(false)
+    }
+
+  }
 
   // my onDrop function:- its main task is to get the file and save it to "file" state
   const onDrop = useCallback((acceptedFiles) => {
@@ -206,9 +236,10 @@ export const UploadScreen = ({onAnalysisComplete}) => {
 
                   <Button 
                       className="h-12 px-6 rounded-xl bg-white text-black font-semibold hover:bg-neutral-200 transition-all shadow-[0_0_15px_rgba(255,255,255,0.1)] cursor-pointer"
-                      onClick={() => alert("Backend pending for links! " + videoLink)}
+                      onClick={handleLinkAnalyze}
+                      disabled={isAnalyzing}
                   >
-                      Analyze Link
+                      {isAnalyzing ? "Analyzing...": "Analyze Link"}
                   </Button>
 
                 </div>

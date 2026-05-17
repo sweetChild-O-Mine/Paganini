@@ -15,7 +15,6 @@ const analyzeVideo = async (req, res) => {
 
     let compressedPath = null
 
-
     try {
 
         const client = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY,
@@ -214,5 +213,69 @@ const chatWithVideo = async (req, res) => {
     }
 }
 
+const analyzeUrl = async (req, res) => {
+    try {
+        // get the stuff out of frontend using body
+        const {videoLink} = req.body
+
+        // trust issues fr...so validate
+        if(!videoLink) {
+            return res.status(400).json({
+                error: "Provide a valid YouTube URL, Sir!!!"
+            })
+        }
+
+        console.log('Starting analysis for URL:', videoLink);
+
+        // gemini will start working from here 
+        
+        // make the client ig
+        const client = new GoogleGenAI({apiKey: process.env.GEMINI_API_KEY})
+
+        console.log("Sending YouTube link directly to Gemini 2.5 Flash sir...");
+
+        // now we will play with the fileUri
+        const response = await client.models.generateContent({
+            model: 'gemini-2.5-flash',
+            contents: [
+                {
+                    role: 'user',
+                    parts: [
+                        // here gemini will directly understand YouTube URIs
+                        {
+                            fileData: {fileUri: videoLink}
+                        },
+
+                        {
+                            text: "Give me a 3 line summary of the whole video. Baiscally it should give me the neccessary info about the video."
+                        }
+                    ]
+                }
+            ]
+        })
+
+        console.log("Gemini Analysis Complete!!!");
+
+        // now we send the reponse 
+        res.status(200).json({
+            message: "Success!!!",
+            wasCompressed: false,
+            analysis: response.text,
+            fileData: {
+                uri: videoLink, //pasing the yt link back so the caht route can use it
+                name: "youtube_video",
+                mimeType: "video/mp4"
+            }
+        })
+
+    } catch (error) {
+        console.log("Error in analysisUrl:", error.message);
+
+        res.status(500).json({
+            error: "The backend suffered a critical emotional event."
+        })
+    }
+}
+
 // export this thing pweeeeasee
-export { analyzeVideo, chatWithVideo}
+export { analyzeVideo, chatWithVideo, analyzeUrl}

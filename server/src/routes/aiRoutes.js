@@ -2,8 +2,9 @@ import express from 'express'
 // import the gateKeeper 
 import upload from '../middlewares/uploadMiddleware.js'
 
+
 // import the manager 
-import { analyzeVideo, chatWithVideo } from '../controllers/aiController.js'
+import { analyzeVideo, chatWithVideo, analyzeUrl } from '../controllers/aiController.js'
 
 
 const router = express.Router()
@@ -15,6 +16,10 @@ router.post('/analyze', upload.single('video'), analyzeVideo )
 
 // for chat with video thing
 router.post('/chat', chatWithVideo)
+
+// for yt video
+router.post('/analyze-url', analyzeUrl)
+
 
 // export the router
 export default router;

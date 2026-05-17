@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import ReactMarkdown from 'react-markdown';
 
+import ReactPlayer from 'react-player'
 
 
 // managaer has sent someth that's why employee willrecienve it and he's doing it
@@ -68,13 +69,34 @@ export const AnalysisScreen = ({file, initialData}) => {
             {/* video player */}
             <div className="flex-1 w-full flex items-center justify-around p-2">
                 {/* if u got file then show the video */}
-                {file && (
+                {file ? (
                     <video 
                     className="w-full max-h-[85vh]  rounded-lg shadow-lg object-contain outline-none "
                     controls
                     src={videoUrl}
                     />
-                )}
+                ) :
+            // Youtube link passed 
+            initialData?.fileData?.uri ? (
+                <div className="w-full aspect-video
+                rounded-xl shadow-lg overflow-hidden bg-black border border-white/5 h-full
+                ">
+                    <ReactPlayer
+                        src = {initialData.fileData.uri}
+                        controls
+                        width="100%"
+                        height="100%"
+                    />
+                </div>
+            ) :
+
+                // if video aisnt even there wtf
+                (
+                <div className="text-neutral-500 font-mono text-sm">
+                    No video source found. Please return to the upload screen.
+                </div>
+                )
+            }
 
             </div>
         </div>
