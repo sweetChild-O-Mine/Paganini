@@ -4,9 +4,10 @@ import { useDropzone } from 'react-dropzone'
 import axios from 'axios'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { useNavigate } from 'react-router-dom'
 
 
-export const UploadScreen = ({onAnalysisComplete}) => {
+export const UploadScreen = () => {
 
   // this will rememebr which file has been uploaded
   const [file, setFile] = useState(null)
@@ -15,6 +16,8 @@ export const UploadScreen = ({onAnalysisComplete}) => {
   const [isAnalyzing, setIsAnalyzing] = useState(false)
 
   const [videoLink, setVideoLink] = useState('')
+
+  const navigate = useNavigate()
 
   const videoUrl = useMemo(() => {
     if(file) return URL.createObjectURL(file)
@@ -52,7 +55,10 @@ export const UploadScreen = ({onAnalysisComplete}) => {
       console.log(analysis)
 
       // run this anaylists thing
-      onAnalysisComplete(file, response.data)
+      navigate('/analysis', {state: {
+        file:file,
+        initialData: response.data
+      }})
 
     } catch (error) {
       console.log("There's some ERROR in API", error)
@@ -80,8 +86,9 @@ export const UploadScreen = ({onAnalysisComplete}) => {
       console.log("Link Analysis Response:", response.data)
 
       // now pass the data to app.jsx
-      onAnalysisComplete(null, response.data)
-
+      navigate('/analysis', {state: {
+        file: null, initialData: response.data
+      } })
 
     } catch (error) {
       

@@ -237,6 +237,9 @@ const analyzeUrl = async (req, res) => {
         // now we will play with the fileUri
         const response = await client.models.generateContent({
             model: 'gemini-2.5-flash',
+            config: {
+                mediaResolution: 'MEDIA_RESOLUTION_LOW'
+            },
             contents: [
                 {
                     role: 'user',

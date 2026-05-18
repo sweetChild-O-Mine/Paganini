@@ -1,14 +1,35 @@
-import React, { useState, useMemo} from 'react'
+import React, { useState, useMemo, useEffect} from 'react'
 import axios from 'axios'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import ReactMarkdown from 'react-markdown';
-
 import ReactPlayer from 'react-player'
+import { useLocation, useNavigate } from 'react-router-dom';
 
 
 // managaer has sent someth that's why employee willrecienve it and he's doing it
-export const AnalysisScreen = ({file, initialData}) => {
+export const AnalysisScreen = () => {
+
+    // get the data
+    const location = useLocation()
+    const navigate = useNavigate()
+
+
+    // bouncer to coz if user types mannualy localhost:smth/analysis then to kick them back to home page
+    useEffect(() => {
+        if(!location.state) {
+            navigate('/')
+        }
+    }, [location, navigate])
+
+    // when the bouncer is kiccking that mfk out dont try to load the rest of the page
+    if(!location.state) {
+        return null
+    }
+
+    // get the teleported data
+    const {file, initialData} = location.state
+
     const [messages, setMessages] = useState([
         { role : 'ai', text: initialData?.analysis }
     ])
