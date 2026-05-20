@@ -4,9 +4,10 @@ import { useDropzone } from 'react-dropzone'
 import axios from 'axios'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { useNavigate } from 'react-router-dom'
 
 
-export const UploadScreen = ({onAnalysisComplete}) => {
+export const UploadScreen = () => {
 
   // this will rememebr which file has been uploaded
   const [file, setFile] = useState(null)
@@ -15,6 +16,8 @@ export const UploadScreen = ({onAnalysisComplete}) => {
   const [isAnalyzing, setIsAnalyzing] = useState(false)
 
   const [videoLink, setVideoLink] = useState('')
+
+  const navigate = useNavigate()
 
   const videoUrl = useMemo(() => {
     if(file) return URL.createObjectURL(file)
@@ -52,7 +55,10 @@ export const UploadScreen = ({onAnalysisComplete}) => {
       console.log(analysis)
 
       // run this anaylists thing
-      onAnalysisComplete(file, response.data)
+      navigate('/analysis', {state: {
+        file:file,
+        initialData: response.data
+      }})
 
     } catch (error) {
       console.log("There's some ERROR in API", error)
@@ -62,6 +68,37 @@ export const UploadScreen = ({onAnalysisComplete}) => {
       setIsAnalyzing(false)
     }
 
+
+  }
+  
+  const handleLinkAnalyze = async () => {
+
+    // check if vieolink is actually there or not
+    if(!videoLink.trim()) return;
+
+    setIsAnalyzing(true)
+    try {
+      // now we send normla json data here 
+      const response = await axios.post('http://localhost:3000/api/ai/analyze-url', {
+        videoLink: videoLink
+      });
+      
+      console.log("Link Analysis Response:", response.data)
+
+      // now pass the data to app.jsx
+      navigate('/analysis', {state: {
+        file: null, initialData: response.data
+      } })
+
+    } catch (error) {
+      
+      console.log("Error analyzing link:", error)
+
+      alert("Failed to analyze link. Check the console.")
+
+    } finally {
+      setIsAnalyzing(false)
+    }
 
   }
 
@@ -206,9 +243,10 @@ export const UploadScreen = ({onAnalysisComplete}) => {
 
                   <Button 
                       className="h-12 px-6 rounded-xl bg-white text-black font-semibold hover:bg-neutral-200 transition-all shadow-[0_0_15px_rgba(255,255,255,0.1)] cursor-pointer"
-                      onClick={() => alert("Backend pending for links! " + videoLink)}
+                      onClick={handleLinkAnalyze}
+                      disabled={isAnalyzing}
                   >
-                      Analyze Link
+                      {isAnalyzing ? "Analyzing...": "Analyze Link"}
                   </Button>
 
                 </div>

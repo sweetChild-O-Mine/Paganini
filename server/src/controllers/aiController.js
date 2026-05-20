@@ -2,6 +2,8 @@ import {GoogleGenAI} from '@google/genai'
 import fs from 'fs'
 import dotenv from 'dotenv'
 import { processAndUpload } from '../services/videoProcessor.js'
+import {VideoSession} from '../models/VideoSession.js'
+import {Message} from '../models/Message.js'
 
 dotenv.config()
 
@@ -14,7 +16,6 @@ const analyzeVideo = async (req, res) => {
     const totalStartTime = Date.now()
 
     let compressedPath = null
-
 
     try {
 
@@ -143,10 +144,28 @@ const analyzeVideo = async (req, res) => {
             fs.unlinkSync(compressedPath)
             console.log("Deleted Compressed file:", compressedPath);
         }
+
+
+        const newSessionAnalyzeVideo = await VideoSession.create({
+            userId: req.user,
+            title: "Uploaded Video Analysis",
+            sourceType: 'UPLOAD',
+            videoUrl: uploadResult.file.uri ,
+            geminiFileUri: uploadResult.file.uri
+        })
         
+        await Message.create({
+            // attach it to the receipt we just made
+            sessionId: newSessionAnalyzeVideo._id,
+            // from the gemini
+            role: 'ai',
+            text: response.text     //the summary text
+        })
+
         // nice response for them ig 
         res.status(200).json({
             message: "Success!!",
+            sessionId:newSessionAnalyzeVideo._id,
             wasCompressed,
             analysis: response.text,
             fileData: {
@@ -176,13 +195,20 @@ const analyzeVideo = async (req, res) => {
 
 const chatWithVideo = async (req, res) => {
     try {
-        const {prompt, fileData} = req.body;
+        const {prompt, fileData, sessionId} = req.body;
 
-        if(!fileData || !fileData.uri) {
+        if(!sessionId || !fileData || !fileData.uri) {
             return res.status(400).json({
                 error: "URI not found "
             })
         }
+
+        // save the user's question
+        await Message.create({
+            sessionId: sessionId,
+            role: 'user',
+            text:prompt
+        })
 
         // make the client 
         const client = new GoogleGenAI({apiKey: process.env.GEMINI_API_KEY})
@@ -203,6 +229,13 @@ const chatWithVideo = async (req, res) => {
             ]
         })
 
+        // save gemini's replyy too sirrr!!!!
+        await Message.create({
+            sessionId: sessionId,
+            role:'ai',
+            text: response.text
+        })
+
         res.status(200).json({
             reply: response.text
         })
@@ -214,5 +247,97 @@ const chatWithVideo = async (req, res) => {
     }
 }
 
+const analyzeUrl = async (req, res) => {
+    try {
+        // get the stuff out of frontend using body
+        const {videoLink} = req.body
+
+        // trust issues fr...so validate
+        if(!videoLink) {
+            return res.status(400).json({
+                error: "Provide a valid YouTube URL, Sir!!!"
+            })
+        }
+
+        console.log('Starting analysis for URL:', videoLink);
+
+        // gemini will start working from here 
+        
+        // make the client ig
+        const client = new GoogleGenAI({apiKey: process.env.GEMINI_API_KEY})
+
+        console.log("Sending YouTube link directly to Gemini 2.5 Flash sir...");
+
+        // now we will play with the fileUri
+        const response = await client.models.generateContent({
+            model: 'gemini-2.5-flash',
+            // config: {
+            //     mediaResolution: 'MEDIA_RESOLUTION_LOW'
+            // },
+            contents: [
+                {
+                    role: 'user',
+                    parts: [
+                        // here gemini will directly understand YouTube URIs
+                        {
+                            fileData: {fileUri: videoLink}
+                        },
+
+                        {
+                            text: "Give me a 3 points summary of the whole video. Basically it should give me the neccessary info about the video."
+                        }
+                    ]
+                }
+            ]
+        })
+
+        console.log("Gemini Analysis Complete!!!");
+
+        // save this receipt to the MONGODB
+        // we know who the fuck user is coz of our great authMiddleware who gave req.user = userID
+
+        // create videoSession 
+        const newSession = await VideoSession.create({
+            // and attach userId to this mfking videoSession
+            userId: req.user,
+            title: "YouTube Video Analysis",
+            sourceType: "YOUTUBE",
+            videoUrl: videoLink,
+            geminiFileUri: videoLink
+        })
+
+        // save the first summary from gemini into chat hsitory
+        await Message.create({
+            sessionId: newSession._id,
+            role: 'ai',
+            text: response.text
+        })
+
+
+        // now we send the reponse bacck to React
+        res.status(200).json({
+            message: "Success!!!",
+            sessionId: newSession._id,  //sedint this id to reasct so that she knwos ki kaunsa sesion hai yeh
+            // basically React needs to tell the backend: "Hey, add this chat message to THIS SPECIFIC video session!"
+            wasCompressed: false,
+            analysis: response.text,
+            fileData: {
+                uri: videoLink, //pasing the yt link back so the caht route can use it
+                name: "youtube_video",
+                mimeType: "video/mp4"
+            }
+        })
+
+    } catch (error) {
+        console.log("Error in analysisUrl:", error.message);
+
+        res.status(500).json({
+            error: "The backend suffered a critical emotional event."
+        })
+    }
+}
+
+
+
 // export this thing pweeeeasee
-export { analyzeVideo, chatWithVideo}
+export { analyzeVideo, chatWithVideo, analyzeUrl}
