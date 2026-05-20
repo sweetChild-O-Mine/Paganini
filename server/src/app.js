@@ -27,9 +27,14 @@ app.use(express.json())
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')))
 
 app.use('/api/ai', aiRoutes)
+// if user wants youtube analyse the route becomes
+// /api/ai/analyze-url
 
 // use authRoutes please 
 app.use('/api/auth', authRoutes)
+// if the user wants to login the route becoems
+// /api/auth/login  => basically calling hte login fucntion which we wrote inside our controller
+// for register :- /api/auth/registration
 
 // creating a test route
 app.get('/', (req, res) => [

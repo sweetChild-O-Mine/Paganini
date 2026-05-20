@@ -159,7 +159,6 @@ const analyzeVideo = async (req, res) => {
             sessionId: newSessionAnalyzeVideo._id,
             // from the gemini
             role: 'ai',
-
             text: response.text     //the summary text
         })
 
@@ -285,7 +284,7 @@ const analyzeUrl = async (req, res) => {
                         },
 
                         {
-                            text: "Give me a 3 line summary of the whole video. Baiscally it should give me the neccessary info about the video."
+                            text: "Give me a 3 points summary of the whole video. Basically it should give me the neccessary info about the video."
                         }
                     ]
                 }
@@ -297,7 +296,9 @@ const analyzeUrl = async (req, res) => {
         // save this receipt to the MONGODB
         // we know who the fuck user is coz of our great authMiddleware who gave req.user = userID
 
+        // create videoSession 
         const newSession = await VideoSession.create({
+            // and attach userId to this mfking videoSession
             userId: req.user,
             title: "YouTube Video Analysis",
             sourceType: "YOUTUBE",
@@ -317,7 +318,7 @@ const analyzeUrl = async (req, res) => {
         res.status(200).json({
             message: "Success!!!",
             sessionId: newSession._id,  //sedint this id to reasct so that she knwos ki kaunsa sesion hai yeh
-            // basically React needs to tell the backend: "Hey, add this chat message to THIS specific video session!"
+            // basically React needs to tell the backend: "Hey, add this chat message to THIS SPECIFIC video session!"
             wasCompressed: false,
             analysis: response.text,
             fileData: {
