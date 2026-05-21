@@ -40,11 +40,17 @@ export const UploadScreen = () => {
       // now we will keep the key as 'video' coz in the multer we wrote it as thats why 
       formData.append('video', file)
 
+      // get the token from localstorage pleasee
+      const token = localStorage.getItem('paganini_token')
+
       // now send POST request to backend using Axios
-      const response = await axios.post('http://localhost:3000/api/ai/analyze', formData, {
+      const response = await axios.post(
+        'http://localhost:3000/api/ai/analyze',
+        formData, {
         headers: {
           // tell the backend ki what the fuck are we actually sending...basically its not json biaatchhh
-          'Content-Type': 'multipart/form-data'
+          'Content-Type': 'multipart/form-data',
+          Authorization: `Bearer ${token}`
         }
       });
 
@@ -78,10 +84,20 @@ export const UploadScreen = () => {
 
     setIsAnalyzing(true)
     try {
+
+      // 1. grab the tooken from making request from local storage
+      const token = localStorage.getItem('paganini_token')
+
       // now we send normla json data here 
-      const response = await axios.post('http://localhost:3000/api/ai/analyze-url', {
-        videoLink: videoLink
-      });
+      const response = await axios.post(
+        'http://localhost:3000/api/ai/analyze-url',
+        {videoLink: videoLink}, // the body so basically 2nd arguemtn
+        {
+          headers: {
+            Authorization: `Bearer ${token}`  // 3rd arg is our headers
+          }
+        }
+      );
       
       console.log("Link Analysis Response:", response.data)
 

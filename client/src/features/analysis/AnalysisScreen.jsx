@@ -57,14 +57,29 @@ export const AnalysisScreen = () => {
         setIsTyping(true)
 
         try {
-            // now hit gemini 
-            const response = await axios.post('http://localhost:3000/api/ai/chat', {
-                prompt: input,
-                fileData: initialData.fileData   //iske ander hi uri hai humara
+            // get the token from localstorage mfk 
+            const token = localStorage.getItem('paganini_token')
 
-                // now we have to tell mfking gemini bout the file ki kaunsi file pr baat ho rhi hai
-                // but frontend ke pass gemini uri bhi toh hona chahiye uske liye
-            })
+            // now hit gemini 
+            const response = await axios.post(
+                'http://localhost:3000/api/ai/chat', 
+                // 2nd arg the body
+                {
+                    prompt: input,
+                    fileData: initialData.fileData ,  //iske ander hi uri hai humara
+                    // our beloved sessionId 
+                    sessionId: initialData.sessionId
+
+                    // now we have to tell mfking gemini bout the file ki kaunsi file pr baat ho rhi hai
+                    // but frontend ke pass gemini uri bhi toh hona chahiye uske liye
+                },
+                // the 3rd arg should be our headers
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }
+                }
+        )
 
             // now jo bhi response aaeyga gemini usko message arr me daal do but protect the previous ones
             setMessages([...newMessage, {role: 'ai', text: response.data.reply }])
