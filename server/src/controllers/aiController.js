@@ -337,7 +337,43 @@ const analyzeUrl = async (req, res) => {
     }
 }
 
+const getSessionHistory = async (req, res) => {
+    try {
+        // get the sessionId from url
+        const {sessionId} = req.params
 
+        // 2. find all the messages for this specific session using sessionId....and they should be sorted based on when they were created
+        const messages = await Message.find({sessionId}).sort({
+            createdAt: 1
+        })
+
+        return res.status(200).json({ messages })
+    } catch (error) {
+        console.error("Error fetchign history:", error)
+        return res.status(500).json({
+            error: "Failed to fetch chat history."
+        })
+    }
+}
+
+// queried MongoDB for all sessions belonging to that specific user and sorted them by the newest first
+const getUserSession = async (req, res) => {
+    try {
+        // req.user contain your complete mongoDB profile including the object id => _id
+        const id = req.user._id
+
+        const videos = await VideoSession.find({userId: id}).sort({
+            createdAt: -1
+        })
+        
+        return res.status(200).json({ videos })
+    } catch (error) {
+        console.error("Error fetching videos:", error)
+        return res.status(500).json({
+            error: "Failed to fetch Videos"
+        })
+    }
+}
 
 // export this thing pweeeeasee
-export { analyzeVideo, chatWithVideo, analyzeUrl}
+export { analyzeVideo, chatWithVideo, analyzeUrl, getSessionHistory, getUserSession }

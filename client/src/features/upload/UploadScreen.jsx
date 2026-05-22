@@ -5,6 +5,8 @@ import axios from 'axios'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { useNavigate } from 'react-router-dom'
+import { useAuthStore } from '@/store/authStore'
+import { toast } from 'sonner'
 
 
 export const UploadScreen = () => {
@@ -24,11 +26,21 @@ export const UploadScreen = () => {
     return null
   }, [file])
 
+  // get the token sirrr
+  const token = useAuthStore((state) => state.token)
+
   // handleAnalyze funtion for
   const handleAnalyze = async () => {
 
     // if file aint there then go back 
     if(!file) return;
+    
+    if(!token) {
+      toast("Please log in or create an account to analyze videos")
+      navigate('/login')
+      // stop the fucntion from runninx axios and all 
+      return
+    }
 
     // now turn the laoding statte true coz ab laoding ka kaam actually hona hai 
     setIsAnalyzing(true)
@@ -40,11 +52,17 @@ export const UploadScreen = () => {
       // now we will keep the key as 'video' coz in the multer we wrote it as thats why 
       formData.append('video', file)
 
+      // get the token from localstorage pleasee
+      const token = localStorage.getItem('paganini_token')
+
       // now send POST request to backend using Axios
-      const response = await axios.post('http://localhost:3000/api/ai/analyze', formData, {
+      const response = await axios.post(
+        'http://localhost:3000/api/ai/analyze',
+        formData, {
         headers: {
           // tell the backend ki what the fuck are we actually sending...basically its not json biaatchhh
-          'Content-Type': 'multipart/form-data'
+          'Content-Type': 'multipart/form-data',
+          Authorization: `Bearer ${token}`
         }
       });
 
@@ -62,7 +80,7 @@ export const UploadScreen = () => {
 
     } catch (error) {
       console.log("There's some ERROR in API", error)
-      alert('Upload failed. Is server running?')
+      toast('Upload failed. Is server running?')
     } finally {
       // laoding ko wapis false kardo taki data dikhe in either case
       setIsAnalyzing(false)
@@ -76,12 +94,29 @@ export const UploadScreen = () => {
     // check if vieolink is actually there or not
     if(!videoLink.trim()) return;
 
+    if(!token) {
+      toast("Please log in or create an account to analyze links")
+      navigate('/login')
+      // to stop the excustion of axios
+      return
+    }
+
     setIsAnalyzing(true)
     try {
+
+      // 1. grab the tooken from making request from local storage
+      const token = localStorage.getItem('paganini_token')
+
       // now we send normla json data here 
-      const response = await axios.post('http://localhost:3000/api/ai/analyze-url', {
-        videoLink: videoLink
-      });
+      const response = await axios.post(
+        'http://localhost:3000/api/ai/analyze-url',
+        {videoLink: videoLink}, // the body so basically 2nd arguemtn
+        {
+          headers: {
+            Authorization: `Bearer ${token}`  // 3rd arg is our headers
+          }
+        }
+      );
       
       console.log("Link Analysis Response:", response.data)
 
@@ -94,7 +129,7 @@ export const UploadScreen = () => {
       
       console.log("Error analyzing link:", error)
 
-      alert("Failed to analyze link. Check the console.")
+      toast("Failed to analyze link. Check the console.")
 
     } finally {
       setIsAnalyzing(false)
@@ -104,14 +139,22 @@ export const UploadScreen = () => {
 
   // my onDrop function:- its main task is to get the file and save it to "file" state
   const onDrop = useCallback((acceptedFiles) => {
+    
+    
+    if(!token) {
+      toast("Please log in or create an account to upload and analyze videos")
+      navigate('/login')
+      return
+    }
 
+    // else if the got token then let them do whatever the fk they want
     // get the first fking file from the acceptedFIles 
     const droppedFile = acceptedFiles[0]
     console.log("We got the File!!!", droppedFile)
 
     // save this file inside....basically container me daaldo my lad!!!
     setFile(droppedFile)
-  }, [])
+  }, [token, navigate])
 
   // we will give useDropzone to our onDrop to run 
     const { getRootProps, getInputProps, isDragActive } = useDropzone({

@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect} from 'react'
+import React, { useState, useMemo, useEffect, useEffectEvent} from 'react'
 import axios from 'axios'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -38,6 +38,49 @@ export const AnalysisScreen = () => {
     // when gemini doing analysis and trying to generate the response toh us time there must be smth to show
     const [isTyping, setIsTyping] = useState(false)
 
+    useEffect(() => {
+        const fetchHistory = async () => {
+            // check if you got sesisonId or not...if u dont have then do nothing coz for the first page load we dont have sessinId
+            if(!initialData?.sessionId) return
+
+            try {
+                //1. get the wristBand the mfking JWT
+                const token = localStorage.getItem('paganini_token')
+
+                // 2. assl the backend for the history now 
+                const response = await axios.get(
+                    `http://localhost:3000/api/ai/session/${initialData.sessionId}`,
+                    {
+                        headers: {
+                            Authorization: `Bearer ${token}`
+                        }
+                    }
+                )
+
+                // 3. backend will return the arr of messages now 
+                const dbMessages = response.data.messages
+
+                // if mongo got the memssages saved we will overrdie ther reacr states...
+                if(dbMessages && dbMessages.length > 0) {
+                    // map over it and make sure theyy match the ui for of our ui 
+                    const formattedMessages = dbMessages.map((msg) => ({
+                        role: msg.role,
+                        text: msg.text
+                    }))
+                    // now replace the default single message state witht he full db history 
+                    setMessages(formattedMessages)
+                }
+
+            } catch (error) {
+                console.error("Failed to fetch chat history:", error)
+            }
+        }
+
+        // call the fucntiono please 
+        fetchHistory()
+        // only runs this useeffect whenever there's a change in sessionId
+    }, [initialData?.sessionId])
+
     // this well tell the react ki is URL ko ek baar banao sirf....when file is uplaoded...dont make it again and again
     const videoUrl = useMemo(() => {
         if (file) return URL.createObjectURL(file)
@@ -57,14 +100,29 @@ export const AnalysisScreen = () => {
         setIsTyping(true)
 
         try {
-            // now hit gemini 
-            const response = await axios.post('http://localhost:3000/api/ai/chat', {
-                prompt: input,
-                fileData: initialData.fileData   //iske ander hi uri hai humara
+            // get the token from localstorage mfk 
+            const token = localStorage.getItem('paganini_token')
 
-                // now we have to tell mfking gemini bout the file ki kaunsi file pr baat ho rhi hai
-                // but frontend ke pass gemini uri bhi toh hona chahiye uske liye
-            })
+            // now hit gemini 
+            const response = await axios.post(
+                'http://localhost:3000/api/ai/chat', 
+                // 2nd arg the body
+                {
+                    prompt: input,
+                    fileData: initialData.fileData ,  //iske ander hi uri hai humara
+                    // our beloved sessionId 
+                    sessionId: initialData.sessionId
+
+                    // now we have to tell mfking gemini bout the file ki kaunsi file pr baat ho rhi hai
+                    // but frontend ke pass gemini uri bhi toh hona chahiye uske liye
+                },
+                // the 3rd arg should be our headers
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }
+                }
+        )
 
             // now jo bhi response aaeyga gemini usko message arr me daal do but protect the previous ones
             setMessages([...newMessage, {role: 'ai', text: response.data.reply }])
