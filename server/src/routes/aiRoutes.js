@@ -2,6 +2,7 @@ import express from 'express'
 // import the gateKeeper 
 import upload from '../middlewares/uploadMiddleware.js'
 import { protect } from '../middlewares/authMiddleware.js'
+import { getSessionHistory } from '../controllers/aiController.js'
 
 // import the manager 
 import { analyzeVideo, chatWithVideo, analyzeUrl } from '../controllers/aiController.js'
@@ -20,6 +21,8 @@ router.post('/chat', protect, chatWithVideo)
 // for yt video
 router.post('/analyze-url', protect, analyzeUrl)
 
+// the get route to get the chat from the db 
+router.get('/session/:sessionId', protect, getSessionHistory)
 
 // export the router
 export default router;
