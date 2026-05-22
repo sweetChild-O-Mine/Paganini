@@ -7,6 +7,8 @@ import {RegisterScreen} from './features/auth/RegisterScreen'
 
 
 import { Routes, Route } from 'react-router-dom'
+import { Toaster } from 'sonner'
+import { VaultScreen } from './features/vault/VaultScreen'
 
 
 function App() {
@@ -23,7 +25,10 @@ function App() {
             <Route path='/analysis' element={<AnalysisScreen/>} />
             <Route path='/login' element={<LoginScreen/>} />
             <Route path='/register' element={<RegisterScreen/>} />
+            <Route path='/vault' element={<VaultScreen/>} />
+
           </Routes>
+          <Toaster/>
 
 
       </div>

@@ -4,6 +4,7 @@ import { Input } from '@/components/ui/input'
 import { useNavigate } from 'react-router-dom'
 import { useState } from 'react'
 import axios from 'axios'
+import { useAuthStore } from '../../store/authStore'
 
 export const LoginScreen = () => {
     // states for our input 
@@ -11,6 +12,8 @@ export const LoginScreen = () => {
     const [password, setPassword] = useState("")
 
     const navigate = useNavigate()
+
+    const login = useAuthStore((state) => state.login)
 
     const handleSubmit = async (e) => {
         // will stop the page from refreshing when you click on submit
@@ -30,7 +33,7 @@ export const LoginScreen = () => {
             const token = response.data.token
 
             // 3. store the wristband into localStoargw
-            localStorage.setItem('paganini_token', token)
+            login(token)
 
             // phase 4 send the person to the vault
 

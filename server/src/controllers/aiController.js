@@ -356,6 +356,24 @@ const getSessionHistory = async (req, res) => {
     }
 }
 
+// queried MongoDB for all sessions belonging to that specific user and sorted them by the newest first
+const getUserSession = async (req, res) => {
+    try {
+        // req.user contain your complete mongoDB profile including the object id => _id
+        const id = req.user._id
+
+        const videos = await VideoSession.find({userId: id}).sort({
+            createdAt: -1
+        })
+        
+        return res.status(200).json({ videos })
+    } catch (error) {
+        console.error("Error fetching videos:", error)
+        return res.status(500).json({
+            error: "Failed to fetch Videos"
+        })
+    }
+}
 
 // export this thing pweeeeasee
-export { analyzeVideo, chatWithVideo, analyzeUrl, getSessionHistory}
+export { analyzeVideo, chatWithVideo, analyzeUrl, getSessionHistory, getUserSession }

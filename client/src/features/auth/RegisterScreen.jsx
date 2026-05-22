@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button'
 import { useNavigate } from 'react-router-dom'
 import { useState } from 'react'
 import axios from 'axios'
+import { useAuthStore } from '../../store/authStore'
 
 export const RegisterScreen = () => {
     // states for our input 
@@ -12,6 +13,8 @@ export const RegisterScreen = () => {
     const [password, setPassword] = useState('')
 
     const navigate = useNavigate()
+
+    const login = useAuthStore((state) => state.login)
 
     const handleSubmit = async (e) => {
         // stop the page from refreshing 
@@ -34,7 +37,7 @@ export const RegisterScreen = () => {
             const token = response.data.token
 
             // 3. now store that token into localstorage 
-            localStorage.setItem('paganini_token', token)
+            login(token)
 
             // phase 3:- send the user to thevault
             navigate('/analysis')
