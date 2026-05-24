@@ -2,7 +2,7 @@ import express from 'express'
 // import the gateKeeper 
 import upload from '../middlewares/uploadMiddleware.js'
 import { protect } from '../middlewares/authMiddleware.js'
-import { getSessionHistory, getUserSession } from '../controllers/aiController.js'
+import { deleteSession, getSessionHistory, getUserSession, generateUploadUrl } from '../controllers/aiController.js'
 
 // import the manager 
 import { analyzeVideo, chatWithVideo, analyzeUrl } from '../controllers/aiController.js'
@@ -26,6 +26,11 @@ router.get('/sessions', protect, getUserSession)
 
 // the get route to get the chat from the db 
 router.get('/session/:sessionId', protect, getSessionHistory)
+
+// to delete the mfking session
+router.delete('/session/:sessionId', protect, deleteSession)
+
+router.post('upload-url/', protect, generateUploadUrl)
 
 // export the router
 export default router;

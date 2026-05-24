@@ -1,9 +1,12 @@
 import {GoogleGenAI} from '@google/genai'
-import fs from 'fs'
+import fs, { read, unwatchFile } from 'fs'
 import dotenv from 'dotenv'
 import { processAndUpload } from '../services/videoProcessor.js'
 import {VideoSession} from '../models/VideoSession.js'
 import {Message} from '../models/Message.js'
+import { PutObjectCommand } from '@aws-sdk/client-s3'   
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
+import { s3Client } from '../config/awsConfig.js'
 
 dotenv.config()
 
@@ -360,7 +363,7 @@ const getSessionHistory = async (req, res) => {
 const getUserSession = async (req, res) => {
     try {
         // req.user contain your complete mongoDB profile including the object id => _id
-        const id = req.user._id
+        const id = req.user
 
         const videos = await VideoSession.find({userId: id}).sort({
             createdAt: -1
@@ -375,5 +378,64 @@ const getUserSession = async (req, res) => {
     }
 }
 
+// Delete session of the user
+const deleteSession = async (req, res) => {
+    try {
+        // getthe otkne id 
+        const { sessionId } = req.params
+        
+        // 1. delete the actual video session
+        await VideoSession.findByIdAndDelete(sessionId)
+
+        // 2. delete all the msgs belonged to that videosession
+        await Message.deleteMany({sessionId: sessionId})
+
+        res.status(200).json({
+            message: "Vaule completely pruged"
+        })
+    } catch (error) {
+        console.log("Error deleting session:", error);
+        res.status(500).json({
+            error: "Failed to delete session"
+        })
+    }
+}
+
+// generate signed url 
+const generateUploadUrl = async (req, res) => {
+    try {
+        const { fileName, fileType } = req.body
+
+        // 1. create a unique file name (key) so users dont overriw each other's video
+        
+        const  umiqueFileKey= `uploads/${req.user}/${Date.now()}-${fileName} `
+
+
+        // tell aws ki wha the fuck we are putting in the bucket
+        // use this for "Hey, prepare a slot in my bucket for this specific file
+        const command = new PutObjectCommand({
+            Bucket: process.env.AWS_BUCKET_NAME ,
+            Key: uniqueFileKey ,
+            ContentType: fileType
+        })
+
+        const signedUrl = await getSignedUrl(s3Client, command, {expiresIn: 300})
+
+
+
+        return res.status(200).json({
+            url: signedUrl,
+            // snedin this so react madam know what's the name of the file 
+            Key: uniqueFileKey
+        })
+    } catch (error) {
+        console.error("Couldn't generate Signed URL")
+        res.status(500).json({
+            error: "Server failed to generate upload ticket"
+        })
+
+    }
+}
+
 // export this thing pweeeeasee
-export { analyzeVideo, chatWithVideo, analyzeUrl, getSessionHistory, getUserSession }
+export { analyzeVideo, chatWithVideo, analyzeUrl, getSessionHistory, getUserSession, deleteSession, generateUploadUrl }
