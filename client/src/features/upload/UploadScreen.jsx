@@ -33,7 +33,7 @@ export const UploadScreen = () => {
   const handleAnalyze = async () => {
 
     // if file aint there then go back 
-    if(!file) return;
+    if(!file) return toast.error("Please drop a video first");
     
     if(!token) {
       toast("Please log in or create an account to analyze videos")
@@ -43,50 +43,77 @@ export const UploadScreen = () => {
     }
 
     // now turn the laoding statte true coz ab laoding ka kaam actually hona hai 
-    setIsAnalyzing(true)
+    setIsAnalyzing(true);
+    toast.loading("Step 1: Generating VIP Pass...", {id: "upload-toast"})
 
     try {
-      // make formdata "parsal" for our api 
-      const formData = new FormData()
-
-      // now we will keep the key as 'video' coz in the multer we wrote it as thats why 
-      formData.append('video', file)
 
       // get the token from localstorage pleasee
       const token = localStorage.getItem('paganini_token')
 
-      // now send POST request to backend using Axios
-      const response = await axios.post(
-        'http://localhost:3000/api/ai/analyze',
-        formData, {
-        headers: {
-          // tell the backend ki what the fuck are we actually sending...basically its not json biaatchhh
-          'Content-Type': 'multipart/form-data',
-          Authorization: `Bearer ${token}`
+      // find the auth headers
+      const authHeaders = {
+        Authorization:`Bearer ${token}` 
+      }
+
+      // ask backend for the presigned url
+      const urlResponse = await axios.post(
+        'http://localhost:3000/api/ai/upload-url',
+        {
+          fileName: file.name, 
+          fileType: file.type
+        },
+        {
+          headers: authHeaders
         }
-      });
-
+      )
       // when you'll get response from backend toh happy
-      console.log("Got response from Backend!!!", response.data)
+      console.log("Got response from Backend!!!", urlResponse.data)
 
-      const analysis = response.data.analysis
-      console.log(analysis)
+      // quitie interesting tbh
+      const {url: s3UploadUrl , key: s3Key } = urlResponse.data
 
-      // run this anaylists thing
-      navigate('/analysis', {state: {
-        file:file,
-        initialData: response.data
-      }})
+      // step 2: uplaod directly to S3 (Bypassing the nodeJS Backned)
+      toast.loading("Step 2/3: Uploading to Amazon S3...", { id: "upload" })
+      await axios.put(s3UploadUrl, file, {
+        headers: {
+          'Content-Type': file.type
+        }
+      })
+
+
+      // STEP 3 : Tell the backend to analyze the S3 file
+      toast.loading("Step 3/3: Gemini is Analyzing...", { id: "upload" });
+      const analysisResponse = await axios.post(
+        'http://localhost:3000/api/ai/process-s3',
+        {
+          s3Key: s3Key,
+          prompt: "Give me a 3 line summary of the whole video."
+        },
+        {
+          headers: authHeaders
+        }
+      )
+
+      toast.success("Analysis Complete!" , {
+        id: 'upload'
+      })
+
+      // teleport to tha analysis screeen
+      navigate('/analysis', {
+        state: {
+          file: file,
+          initialData: analysisResponse.data
+        }
+      })
 
     } catch (error) {
-      console.log("There's some ERROR in API", error)
-      toast('Upload failed. Is server running?')
+      console.log("Upload Failed", error)
+      toast("Failed to process video.", { id: "upload" })
     } finally {
       // laoding ko wapis false kardo taki data dikhe in either case
       setIsAnalyzing(false)
     }
-
-
   }
   
   const handleLinkAnalyze = async () => {

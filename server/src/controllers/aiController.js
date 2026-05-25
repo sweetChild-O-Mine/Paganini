@@ -4,9 +4,12 @@ import dotenv from 'dotenv'
 import { processAndUpload } from '../services/videoProcessor.js'
 import {VideoSession} from '../models/VideoSession.js'
 import {Message} from '../models/Message.js'
-import { PutObjectCommand } from '@aws-sdk/client-s3'   
+import { PutObjectCommand, GetObjectCommand } from '@aws-sdk/client-s3'   
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
 import { s3Client } from '../config/awsConfig.js'
+import path from 'path'
+import os from 'os'
+import { pipeline } from 'stream/promises'
 
 dotenv.config()
 
@@ -408,7 +411,7 @@ const generateUploadUrl = async (req, res) => {
 
         // 1. create a unique file name (key) so users dont overriw each other's video
         
-        const  umiqueFileKey= `uploads/${req.user}/${Date.now()}-${fileName} `
+        const  uniqueFileKey= `uploads/${req.user}/${Date.now()}-${fileName} `
 
 
         // tell aws ki wha the fuck we are putting in the bucket
@@ -426,10 +429,10 @@ const generateUploadUrl = async (req, res) => {
         return res.status(200).json({
             url: signedUrl,
             // snedin this so react madam know what's the name of the file 
-            Key: uniqueFileKey
+            key: uniqueFileKey
         })
     } catch (error) {
-        console.error("Couldn't generate Signed URL")
+        console.error("Couldn't generate Signed URL", error)
         res.status(500).json({
             error: "Server failed to generate upload ticket"
         })
@@ -437,5 +440,108 @@ const generateUploadUrl = async (req, res) => {
     }
 }
 
+const processS3Video = async (req, res) => {
+    // 1. react will send the exact key of file which she just uploaded
+    // so get the key and the prompt from react
+    const { s3Key, prompt }= req.body
+
+    // 2. set up temporary home fo rhtis file nigg
+    // os.tempdir() find the fault temp foleder on any OS
+    const tempFilePath = path.join(os.tmpdir(), `paganini-${Date.now()}mp4`)
+
+    try {
+        console.log("1. Me(Express) Asking AWS ji for the file stream...");
+
+        // 3. ask mfkin aws pleaeeee to send the file bytessss
+        const command = new GetObjectCommand({
+            Bucket: process.env.AWS_BUCKET_NAME,
+            Key: s3Key
+        })
+
+        const s3Response = await s3Client.send(command)
+
+        // stream to ssd to prevent ram overload bruhh
+        console.log("2. Streaming to SSD to prevent RAM overload");
+
+        // 4. the maigic pipeline which byPasses the ram fr 
+        await pipeline(s3Response.Body, fs.createWriteStream(tempFilePath))
+
+        console.log("File Sucessfully saved to Disk:", tempFilePath);
+
+
+        // Architecture step 5:- handle the file to geminni using mfk 
+        console.log("4.Upalding to Google's Gemini...");
+
+        const uploadResult = await fileManager.uploadFile(tempFilePath, {
+            mimeType: 'video/mp4',
+            displayName: "S3 Video Analysis"
+        })
+
+        // architecture step 6: - the clean up 
+        // so the moment gemini confirms reciept...we will delte the local file no : )
+        console.log("5. Cleaning up local temp file.. ");
+        fs.unlinkSync(tempFilePath)
+
+        // do the analysis now 
+        const response = await client.models.generateContent({
+            model: 'gemini-2.5-flash',
+            contents: [{
+                role: 'user',
+                parts: [
+                    {fileData: { 
+                        fileUri : uploadResult.file.uri,
+                        mimeType: uploadResult.file.mimeType
+                    }},
+                    {
+                        text: prompt || "Give me a 3 line summary of the whole video."
+                    }
+                ]
+            }]
+        })
+
+        // aechitecture step 3 : Save it to DB
+        // contruct permanent s3 publix url so react can play it later 
+        const s3PublicUrl = `https://${process.env.AWS_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${s3Key}`
+
+        const newSession = await VideoSession.create({
+            userId: req.user, 
+            title: "S3 Video Analysis",
+            sourceType: "UPLOAD",
+            videoUrl: s3PublicUrl,
+            geminiFileUri: uploadResult.file.uri
+        })
+
+        // nowo create the message 
+        await Message.create({
+            sessionId: newSession._id,
+            role: 'ai',
+            text: response.text
+        })
+
+        // send the vidtory repsonse to our react ji 
+        res.status(200).json({
+            message: "Success!!!",
+            sessionId: newSession._id,
+            analysis: response.text,
+            fileData: {
+                uri: uploadResult.file.uri,
+                mimeType: uploadResult.file.mimeType
+            }
+        })
+    } catch (error) {
+        console.error("Error Processing S3 Video", error)
+
+        // bhagwan na kare but if gemini crashes, we still need to delete the local file 
+        if(fs.existsSync(tempFilePath)) {
+            fs.unlinkSync(tempFilePath)
+        }
+
+        res.status(500).json({
+            error: "Failed to process video from S3!!!"
+        })
+    }
+}
+
+
 // export this thing pweeeeasee
-export { analyzeVideo, chatWithVideo, analyzeUrl, getSessionHistory, getUserSession, deleteSession, generateUploadUrl }
+export { analyzeVideo, chatWithVideo, analyzeUrl, getSessionHistory, getUserSession, deleteSession, generateUploadUrl, processS3Video }
