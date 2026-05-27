@@ -1,4 +1,4 @@
-import {GoogleGenAI} from '@google/genai'
+import {FileSource, GoogleGenAI} from '@google/genai'
 import fs, { read, unwatchFile } from 'fs'
 import dotenv from 'dotenv'
 import { processAndUpload } from '../services/videoProcessor.js'
@@ -156,8 +156,8 @@ const analyzeVideo = async (req, res) => {
             userId: req.user,
             title: "Uploaded Video Analysis",
             sourceType: 'UPLOAD',
-            videoUrl: uploadResult.file.uri ,
-            geminiFileUri: uploadResult.file.uri
+            videoUrl: uploadResult.uri,
+            geminiFileUri: uploadResult.uri
         })
         
         await Message.create({
@@ -411,7 +411,7 @@ const generateUploadUrl = async (req, res) => {
 
         // 1. create a unique file name (key) so users dont overriw each other's video
         
-        const  uniqueFileKey= `uploads/${req.user}/${Date.now()}-${fileName} `
+        const  uniqueFileKey= `uploads/${req.user}/${Date.now()}-${fileName}`
 
 
         // tell aws ki wha the fuck we are putting in the bucket
@@ -464,7 +464,22 @@ const processS3Video = async (req, res) => {
         console.log("2. Streaming to SSD to prevent RAM overload");
 
         // 4. the maigic pipeline which byPasses the ram fr 
-        await pipeline(s3Response.Body, fs.createWriteStream(tempFilePath))
+ 
+        // 4. The Bulletproof Download (Bypassing the Stream Glitch)
+        console.log("2. Downloading file from S3...");
+        
+        // This natively downloads the file from AWS
+        const byteArray = await s3Response.Body.transformToByteArray();
+
+        console.log("2.1 Started writing file to SSD");
+        
+        // Instantly write it to your SSD
+        fs.writeFileSync(tempFilePath, byteArray);
+
+
+        console.log("3. File succesFully saved to SSD");
+
+
 
         console.log("File Sucessfully saved to Disk:", tempFilePath);
 
@@ -472,15 +487,37 @@ const processS3Video = async (req, res) => {
         // Architecture step 5:- handle the file to geminni using mfk 
         console.log("4.Upalding to Google's Gemini...");
 
-        const uploadResult = await fileManager.uploadFile(tempFilePath, {
-            mimeType: 'video/mp4',
-            displayName: "S3 Video Analysis"
+        const client = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY,
+            requestOptions: { timeout: 600000 }
+        });
+
+        const uploadResult = await client.files.upload({
+            file: tempFilePath,
+            config: {
+                mimeType: 'video/mp4',
+                displayName: "S3 Video Analysis"
+            }
         })
 
         // architecture step 6: - the clean up 
         // so the moment gemini confirms reciept...we will delte the local file no : )
         console.log("5. Cleaning up local temp file.. ");
         fs.unlinkSync(tempFilePath)
+
+        console.log("Waiting for Gemini processing...");
+        let file = await client.files.get({name: uploadResult.name})
+
+        while(file.state === "PROCESSING") {
+            console.log("....PROCESSING (waiting 2s)...");
+            await new Promise((resolve) => setTimeout(resolve, 2000))
+            file = await client.files.get({name: uploadResult.name})
+        }
+
+        if(file.state === "FAILED") {
+            throw new Error("Gemini processing failed.")
+        }
+
+        console.log("Video Ready. Generating Content...");
 
         // do the analysis now 
         const response = await client.models.generateContent({
@@ -489,8 +526,8 @@ const processS3Video = async (req, res) => {
                 role: 'user',
                 parts: [
                     {fileData: { 
-                        fileUri : uploadResult.file.uri,
-                        mimeType: uploadResult.file.mimeType
+                        fileUri : uploadResult.uri,
+                        mimeType: uploadResult.mimeType
                     }},
                     {
                         text: prompt || "Give me a 3 line summary of the whole video."
@@ -508,7 +545,7 @@ const processS3Video = async (req, res) => {
             title: "S3 Video Analysis",
             sourceType: "UPLOAD",
             videoUrl: s3PublicUrl,
-            geminiFileUri: uploadResult.file.uri
+            geminiFileUri: uploadResult.uri
         })
 
         // nowo create the message 
@@ -524,8 +561,8 @@ const processS3Video = async (req, res) => {
             sessionId: newSession._id,
             analysis: response.text,
             fileData: {
-                uri: uploadResult.file.uri,
-                mimeType: uploadResult.file.mimeType
+                uri: uploadResult.uri,
+                mimeType: uploadResult.mimeType
             }
         })
     } catch (error) {
