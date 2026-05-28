@@ -1,19 +1,13 @@
 import express from 'express'
 // import the gateKeeper 
-import upload from '../middlewares/uploadMiddleware.js'
 import { protect } from '../middlewares/authMiddleware.js'
 import { deleteSession, getSessionHistory, getUserSession, generateUploadUrl, processS3Video } from '../controllers/aiController.js'
 
 // import the manager 
-import { analyzeVideo, chatWithVideo, analyzeUrl } from '../controllers/aiController.js'
+import { chatWithVideo, analyzeUrl } from '../controllers/aiController.js'
 
 
 const router = express.Router()
-
-
-// now user is gonna send the data so we gonna need POST route for this  path's gonna be: /analyze
-
-router.post('/analyze', protect ,upload.single('video'), analyzeVideo )
 
 // for chat with video thing
 router.post('/chat', protect, chatWithVideo)
