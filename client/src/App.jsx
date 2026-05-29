@@ -26,9 +26,8 @@ function App() {
             <Route path='/login' element={<LoginScreen/>} />
             <Route path='/register' element={<RegisterScreen/>} />
             <Route path='/vault' element={<VaultScreen/>} />
-
           </Routes>
-          <Toaster/>
+          <Toaster theme='dark' richColors/>
 
 
       </div>
