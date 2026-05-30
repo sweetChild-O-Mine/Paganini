@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input'
 import { useNavigate } from 'react-router-dom'
 import { useAuthStore } from '@/store/authStore'
 import { toast } from 'sonner'
-
+import { Clock, MessageCircle, Archive } from 'lucide-react';
 
 export const UploadScreen = () => {
 
@@ -194,7 +194,7 @@ export const UploadScreen = () => {
 
 
   return (
-    <div className='relative w-full h-full flex flex-col items-center justify-center overflow-y-auto no-scrollbar py-20  '>
+    <div className='relative w-full min-h-screen flex flex-col items-center  overflow-y-auto no-scrollbar py-20 '>
 
             {/* Ye rahe tere Background Glows (Inse Glass effect zinda hoga) */}
       <div className="absolute top-[20%] left-[20%] w-[400px] h-[400px] bg-blue-500/10 rounded-full blur-[120px] pointer-events-none"></div>
@@ -202,6 +202,9 @@ export const UploadScreen = () => {
       {/* <div className="absolute top-[30%] w-[400px] h-[400px] bg-red-200/30 rounded-full blur-[120px] pointer-events-none "/> */}
 
       <div className="absolute bottom-[20%] right-[20%] w-[400px] h-[400px] bg-purple-500/10 rounded-full blur-[120px] pointer-events-none"></div>
+
+    {/* wrapper is needed sir  */}
+    <div className="w-full flex flex-col items-center justify-center min-h-[80vh] ">
 
       {/* main hero section text */}
       <div className="relative z-10 text-center mb-12 mt-10 ">
@@ -327,6 +330,8 @@ export const UploadScreen = () => {
           )}
 
       </div>
+      
+    </div>
 
 
 
@@ -335,6 +340,172 @@ export const UploadScreen = () => {
         {file && (
           <div className="mt-4 text-sm text-green-400">File Selected: {file.name} </div>
         )}
+
+        {/* featuer ig */}
+        <section className="w-full max-w-6xl mx-auto px-6 mt-32 flex flex-col items-center">
+          {/* header kinda thing we'll see it  */}
+          <div className=" flex flex-col items-center text-center mb-16">
+            {/* label */}
+            <span className="text-xs font-semibold tracking-widest text-neutral-500 uppercase mb-2">
+              Features
+            </span>
+
+            {/* the main title */}
+            <h2 className="text-3xl md:text-4xl font-semibold text-white/90 mb-4">
+              Powerful Video Intelligence
+            </h2>
+
+            {/* the subititle  */}
+            <p className="text-neutral-400 max-w-2xl">
+              Paganini uses AI to uncover what matters most in your videos.
+            </p>
+          </div>
+
+          <div className="w-full grid grid-cols-1 md:grid-cols-3 gap-6 relative">
+
+            {/* glowing stuff */}
+            <div className="absolute -left-20 top-10 w-72 h-72 bg-blue-500/20 rounded-full blur-[101px] pointer-events-none " />
+
+            {/* glowing stuff */}
+            <div className="absolute left-100 top-9 w-72 h-72 bg-neutral-100/20 rounded-full  blur-[101px] pointer-events-none " />
+
+            {/* glowing stuff */}
+            <div className="absolute -right-20 bottom-8 w-72 h-72 bg-purple-500/20 rounded-full blur-[101px] pointer-events-none " />
+            
+            {/* feature card 1  */}
+            <div className="h-64 border border-white/10 rounded-2xl bg-neutral-950/50 p-8 flex flex-col justify-start  backdrop-blur-xl relative overflow-hidden z-10">
+
+              {/* icon wrapper */}
+              <div className="w-10 h-10 border rounded-full border-white/10 bg-neutral-900 flex items-center justify-center mb-6 ">
+                
+                {/* smthgn stupdi */}
+                <Clock className="w-4 h-4 text-blue-400/40" />
+              </div>
+
+              {/* card title */}
+              <h3 className="text-lg font-semibold text-white mb-2">
+                Ai Timestamps
+              </h3>
+
+              {/* card description */}
+              <p className="text-sm text-neutral-400 leading-relaxed">
+                  Automatically detect key moments and jump straight to what matters.
+              </p>
+            </div>
+
+
+            {/* feature card 2  */}
+            <div className="h-64 border border-white/10 rounded-2xl bg-neutral-950/50 p-8 flex flex-col justify-start backdrop-blur-xl relative overflow-hidden z-10 ">
+
+              {/* icon wrapper */}
+              <div className="w-10 h-10 border rounded-full border-white/10 bg-neutral-900 flex items-center justify-center mb-6 ">
+                
+                {/* smthgn stupdi */}
+                <MessageCircle className="w-4 h-4 text-purple-400/40" />
+
+              </div>
+
+              {/* card title */}
+              <h3 className="text-lg font-semibold text-white mb-2">
+                Semantic Search.
+              </h3>
+
+              {/* card description */}
+              <p className="text-sm text-neutral-400 leading-relaxed">
+                  Find anything in your videos using natural language queries
+              </p>
+            </div>
+
+
+            {/* feature card 3  */}
+            <div className="h-64 border border-white/10 rounded-2xl bg-neutral-950/50 p-8 flex flex-col justify-start backdrop-blur-xl relative overflow-hidden z-10 ">
+
+              {/* icon wrapper */}
+              <div className="w-10 h-10 border rounded-full border-white/10 bg-neutral-900 flex items-center justify-center mb-6 ">
+                
+                {/* smthgn stupdi */}
+                  <Archive className="w-4 h-4 text-emerald-400/40" />
+
+              </div>
+
+              {/* card title */}
+              <h3 className="text-lg font-semibold text-white mb-2">
+                The Vault
+              </h3>
+
+              {/* card description */}
+              <p className="text-sm text-neutral-400 leading-relaxed">
+                Securely store, organize, and revisit your video insights anytime.
+              </p>
+            </div>
+
+
+
+          </div>
+        </section>
+
+        {/* HOW IT WORKSSSSS sir section */}
+        <section className="w-full max-w-6xl mx-auto px-6 mt-40 mb-32 flex flex-col items-center">
+          {/* the headerrrr */}
+          <div className="flex flex-col items-center text-center mb-20 ">
+            {/* chotu */}
+            <span className="text-xs font-semibold tracking-widest text-neutral-500 uppercase mb-2">
+              How It Works
+            </span>
+
+            <h2 className="text-3xl md:text-4xl font-semibold text-white/90">
+              From Video to Insights in 3 Simple Steps
+            </h2>
+          </div>
+
+          {/* the time line steps */}
+          <div className="w-full grid grid-cols-1 md:grid-cols-3 gap-12 relative">
+            <div className="flex flex-col md:flex-row items-center md:items-start text-center md:text-left gap-6 relative z-10  ">
+              {/* the np. badge */}
+              <div className="shrink-0 w-16 h-16 rounded-full border border-white/10 bg-neutral-950 flex items-center justify-center text-2xl font-bold text-neutral-400/20 ">
+              1
+              </div>
+
+              {/* the text thing */}
+              <div className="">
+                <h3 className="text-lg font-semibold text-white mb-2">
+                  Upload or Paste Link
+                </h3>
+
+                <p className="text-sm text-neutral-400 leading-relaxed">
+                  Upload your video file or paste a YouTube or Instagram link.
+                </p>
+              </div>
+            </div>
+
+            {/* Step 2 */}
+            <div className="flex flex-col md:flex-row items-center md:items-start text-center md:text-left gap-6 relative z-10">
+              <div className="shrink-0 w-16 h-16 rounded-full border border-white/10 bg-neutral-950 flex items-center justify-center text-2xl font-bold text-neutral-400/20">
+                2
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-white mb-2">AI Extracts Context</h3>
+                <p className="text-sm text-neutral-400 leading-relaxed">
+                  Our AI analyzes your video and extracts key insights and timestamps.
+                </p>
+              </div>
+            </div>
+
+                    {/* Step 3 */}
+            <div className="flex flex-col md:flex-row items-center md:items-start text-center md:text-left gap-6 relative z-10">
+              <div className="shrink-0 w-16 h-16 rounded-full border border-white/10 bg-neutral-950 flex items-center justify-center text-2xl font-bold text-purple-400/20">
+                3
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-white mb-2">Chat & Analyze</h3>
+                <p className="text-sm text-neutral-400 leading-relaxed">
+                  Ask questions, explore insights, and get answers in real-time.
+                </p>
+              </div>
+            </div>
+
+          </div>
+        </section>
  
     </div>
   )
