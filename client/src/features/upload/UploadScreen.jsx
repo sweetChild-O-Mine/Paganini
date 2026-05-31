@@ -460,6 +460,19 @@ export const UploadScreen = () => {
 
           {/* the time line steps */}
           <div className="w-full grid grid-cols-1 md:grid-cols-3 gap-12 relative">
+
+            {/* the line thing  */}
+            {/* hidden on mobile and appears only on laptopp */}
+            <div className="hidden md:block absolute top-8 left-[10%] w-[80%] h-[2px] z-0 ">
+              
+              {/* the main dashed base line  */}
+              <div className="absolute inset-0 border-t border-dashed border-white/20"></div>
+
+              {/* the glowing gradient overlay */}
+              <div className="absolute inset-0 bg-linear-to-r from-blue-500/0 via-purple-500/30 to-emerald-500/0 " />
+
+            </div>
+
             <div className="flex flex-col md:flex-row items-center md:items-start text-center md:text-left gap-6 relative z-10  ">
               {/* the np. badge */}
               <div className="shrink-0 w-16 h-16 rounded-full border border-white/10 bg-neutral-950 flex items-center justify-center text-2xl font-bold text-neutral-400/20 ">
