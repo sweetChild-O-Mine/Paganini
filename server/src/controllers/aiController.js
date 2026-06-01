@@ -7,6 +7,7 @@ import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
 import { s3Client } from '../config/awsConfig.js'
 import path from 'path'
 import os from 'os'
+import fs from 'fs'
 
 dotenv.config()
 

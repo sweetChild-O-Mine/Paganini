@@ -44,7 +44,7 @@ export const UploadScreen = () => {
 
     // now turn the laoding statte true coz ab laoding ka kaam actually hona hai 
     setIsAnalyzing(true);
-    toast.loading("Step 1: Generating VIP Pass...", {id: "upload-toast"})
+    toast.loading("Step 1: Generating VIP Pass...", {id: "upload"})
 
     try {
 
@@ -108,11 +108,11 @@ export const UploadScreen = () => {
       })
 
     } catch (error) {
-      console.log("Upload Failed", error)
-      toast("Failed to process video.", { id: "upload" })
+        console.log("Upload Failed", error)
+        toast.error("Failed to process video.", { id: "upload" })
     } finally {
       // laoding ko wapis false kardo taki data dikhe in either case
-      setIsAnalyzing(false)
+        setIsAnalyzing(false)
     }
   }
   
@@ -222,31 +222,49 @@ export const UploadScreen = () => {
           {file ? (
             <div className="w-full flex flex-col items-center justify-center mt-10 space-y-4">
 
-              {/*put the video player of html sir   */}
-              <video
-                className="w-full max-w-2xl rounded-xl border border-neutral-700 shadow-lg"
-                controls
-                autoPlay
-                // the BLOB url
-                src={videoUrl}
-              />
+              {/* the sleek attachment card they say  */}
+              <div className="w-full max-w-lg p-4 rounded-2xl border border-white/10 bg-neutral-900/50 backdrop-blur-xl flex items-center justify-between shadow-2xl">
+                <div className="flex items-center gap-4">
+                  
+                  {/* file icon */}
+                    <div className="shrink-0 w-12 h-12 rounded-full bg-blue-500/10 flex items-center justify-center text-blue-400">
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLineJoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
+                    </div>
 
-              {/* button to remove the wrong video if tis been uplaoded by mistake */}
-              <div className="flex gap-4">
-                <Button
-                  onClick={() => setFile(null)}
-                  variant='destructive'
-                  className='px-6 py-6 bg-red-500/20 text-red-50 text-lg rounded-lg transition cursor-pointer'
-                >
-                  Remove
-                </Button>
-                <Button
-                  onClick={handleAnalyze} 
-                  className="px-6 py-6 bg-neutral-700 hover:bg-neutral-800 text-lg rounded-lg transition font-bold cursor-pointer">
-                    {isAnalyzing ? 'Analyzing...' : 'Analyze with Gemini!!' }
-                </Button>
+                    {/* file info */}
+                    <div className="flex flex-col text-left">
+                      <span className="text-white font-medium truncate max-w-[200px] sm:max-w-[300px] ">
+                        {file.name}
+                      </span>
 
+                      <span className="text-xs text-neutral-500">
+                        {(file.size/(1024 * 1024)).toFixed(2)}MB • Ready to analyze
+                      </span>
+                    </div>
+
+                  </div> 
+
+                  {/* remove btn  */}
+                  <button
+                    onClick={() => setFile(null)}
+                    className={`p-2 text-neutral-500 hover:text-red-400 hover:bg-red-500/10 rounded-full transition-colors cursor-pointer`}
+                    title="Remove file"
+                  >
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLineJoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                  </button>
+              
               </div>
+
+              {/* Big glawing Analyze Button  */}
+              <Button
+                onClick={handleAnalyze}
+                disabled= {isAnalyzing}
+                className={`w-full max-w-lg h-14 bg-white text-black hover:bg-neutral-200 text-lg rounded-xl transition-all
+                   shadow-[0_0_20px_rgba(255,255,255,0.1)] font-semibold cursor-pointer
+                  `}
+              >
+                {isAnalyzing ? 'Extracting Insights...' : 'Analyze with Gemini'}
+              </Button>
 
             </div>
           ) : (
@@ -384,7 +402,7 @@ export const UploadScreen = () => {
 
               {/* card title */}
               <h3 className="text-lg font-semibold text-white mb-2">
-                Ai Timestamps
+                AI Timestamps
               </h3>
 
               {/* card description */}
@@ -407,7 +425,7 @@ export const UploadScreen = () => {
 
               {/* card title */}
               <h3 className="text-lg font-semibold text-white mb-2">
-                Semantic Search.
+                Semantic Search
               </h3>
 
               {/* card description */}
@@ -469,14 +487,23 @@ export const UploadScreen = () => {
               <div className="absolute inset-0 border-t border-dashed border-white/20"></div>
 
               {/* the glowing gradient overlay */}
-              <div className="absolute inset-0 bg-linear-to-r from-blue-500/0 via-purple-500/30 to-emerald-500/0 " />
+              <div className="absolute inset-0 bg-linear-to-r from-blue-500/0 via-purple-500/30 to-emerald-500/0 blur-[2px] " />
 
             </div>
 
             <div className="flex flex-col md:flex-row items-center md:items-start text-center md:text-left gap-6 relative z-10  ">
               {/* the np. badge */}
-              <div className="shrink-0 w-16 h-16 rounded-full border border-white/10 bg-neutral-950 flex items-center justify-center text-2xl font-bold text-neutral-400/20 ">
-              1
+              <div className="relative rounded-full shrink-0 flex items- justify-center w-16 h-16 ">
+
+                {/* the bluw glow ig  */}
+                <div className="absolute inset-0 bg-blue-900/20 blur-2xl rounded-full "></div>
+
+                {/* subtele outer ring  */}
+                <div className="absolute -inset-2 rounded-full border border-white/10 bg-transparent "/>
+
+                {/* the main abdge now */}
+                <div className="absolute inset-0 rounded-full border border-white/10 bg-neutral-950 flex items-center justify-center text-2xl font-bold text-blue-400/40 shadow-inner ">1</div>
+
               </div>
 
               {/* the text thing */}
@@ -493,9 +520,15 @@ export const UploadScreen = () => {
 
             {/* Step 2 */}
             <div className="flex flex-col md:flex-row items-center md:items-start text-center md:text-left gap-6 relative z-10">
-              <div className="shrink-0 w-16 h-16 rounded-full border border-white/10 bg-neutral-950 flex items-center justify-center text-2xl font-bold text-neutral-400/20">
-                2
+              {/* The God-Tier Badge Wrapper */}
+              <div className="relative shrink-0 flex items-center justify-center w-16 h-16">
+                <div className="absolute inset-0 bg-purple-500/20 blur-2xl rounded-full"></div>
+                <div className="absolute -inset-2 rounded-full border border-white/5 bg-transparent"></div>
+                <div className="absolute inset-0 rounded-full border border-white/10 bg-neutral-950 flex items-center justify-center text-2xl font-bold text-purple-400 shadow-inner">
+                  2
+                </div>
               </div>
+
               <div>
                 <h3 className="text-lg font-semibold text-white mb-2">AI Extracts Context</h3>
                 <p className="text-sm text-neutral-400 leading-relaxed">
@@ -506,9 +539,15 @@ export const UploadScreen = () => {
 
                     {/* Step 3 */}
             <div className="flex flex-col md:flex-row items-center md:items-start text-center md:text-left gap-6 relative z-10">
-              <div className="shrink-0 w-16 h-16 rounded-full border border-white/10 bg-neutral-950 flex items-center justify-center text-2xl font-bold text-purple-400/20">
-                3
+              {/* The God-Tier Badge Wrapper */}
+              <div className="relative shrink-0 flex items-center justify-center w-16 h-16">
+                <div className="absolute inset-0 bg-blue-500/20 blur-2xl rounded-full"></div>
+                <div className="absolute -inset-2 rounded-full border border-white/5 bg-transparent"></div>
+                <div className="absolute inset-0 rounded-full border border-white/10 bg-neutral-950 flex items-center justify-center text-2xl font-bold text-neutral-400/40 shadow-inner">
+                  3
+                </div>
               </div>
+
               <div>
                 <h3 className="text-lg font-semibold text-white mb-2">Chat & Analyze</h3>
                 <p className="text-sm text-neutral-400 leading-relaxed">
