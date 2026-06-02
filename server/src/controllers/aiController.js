@@ -394,6 +394,25 @@ const processS3Video = async (req, res) => {
     }
 }
 
+const analyzeInstagram = aysnc (req, res) => {
+    try {
+        // check if the actuall stuff exist or not 
+        const { instaLink } = rea.bdoy.instagramUrl
+    
+        if(!instaLink) {
+            return res.status(400).json({
+                error: "Provide a valid Instagram reel url"
+            })
+        }
+
+        console.log("1. Interogating RapidAPI for the raw mp4 link...");
+
+
+        
+    } catch (error) {
+        
+    }
+}
 
 // export this thing pweeeeasee
 export { chatWithVideo, analyzeUrl, getSessionHistory, getUserSession, deleteSession, generateUploadUrl, processS3Video }

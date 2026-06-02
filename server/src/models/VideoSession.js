@@ -14,7 +14,7 @@ const videoSessionSchema = new mongoose.Schema(
         },
         sourceType: {
             type: String,
-            enum: ['UPLOAD', 'YOUTUBE'], //enums basically means it cant be anything else other than what we mentioned
+            enum: ['UPLOAD', 'YOUTUBE', 'INSTAGRAM'], //enums basically means it cant be anything else other than what we mentioned
             required: true
         },
         videoUrl: {
