@@ -83,9 +83,17 @@ export const AnalysisScreen = () => {
 
     // this well tell the react ki is URL ko ek baar banao sirf....when file is uplaoded...dont make it again and again
     const videoUrl = useMemo(() => {
+        // if its from drag and drop stuff then play it from the browser
         if (file) return URL.createObjectURL(file)
+
+        // if its from insta video from our bakcend , play the s3 URL
+        if (initialData?.playableUrl) return initialData.playableUrl
+
+        // if its from yt...play the yt url mfk
+        if (initialData?.fileData?.uri) return initialData.fileData.uri
+
         return null
-    }, [file])
+    }, [file, initialData])
     
     // basically a fucntion to hit our backend with prompt and filedata so that gemini can reply to us with some cool stuff
     const handleSendMessage = async () => {
@@ -161,7 +169,8 @@ export const AnalysisScreen = () => {
                 rounded-xl shadow-lg overflow-hidden bg-black border border-white/5 h-full
                 ">
                     <ReactPlayer
-                        src = {initialData.fileData.uri}
+                        src = {videoUrl}
+                        // src = {initialData.fileData.uri}
                         controls
                         width="100%"
                         height="100%"

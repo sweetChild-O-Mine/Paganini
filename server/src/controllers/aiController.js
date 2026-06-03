@@ -397,7 +397,7 @@ const processS3Video = async (req, res) => {
 }
 
 const analyzeInstagram = async (req, res) => {
-    const tempFilePath = null
+    let tempFilePath = null
 
     try {
         // check if the actuall stuff exist or not 
@@ -486,7 +486,7 @@ const analyzeInstagram = async (req, res) => {
         console.log("3. File successfully staged on SSD:", tempFilePath);
 
         // the s3 stuff
-        const s3Key = `uploads/${req.user}/instagram/${Date.now()}.mp4 `
+        const s3Key = `uploads/${req.user}/instagram/${Date.now()}.mp4`
 
         const command = new PutObjectCommand({
             Bucket: process.env.AWS_BUCKET_NAME,
@@ -525,7 +525,7 @@ const analyzeInstagram = async (req, res) => {
         }
 
         // check if its failed or not 
-        if(file.name === "FAILED") {
+        if(file.state === "FAILED") {
             throw new Error("Gemini processing failed. The video might be corrupted.")
         }
 
@@ -534,7 +534,7 @@ const analyzeInstagram = async (req, res) => {
         // 2. ask the gemini for the summary now
         const response = await client.models.generateContent({
             model: 'gemini-2.5-flash',
-            conents: [{
+            contents: [{
                 role: 'user',
                 parts: [
                     { fileData: {
@@ -558,7 +558,7 @@ const analyzeInstagram = async (req, res) => {
             userId: req.user,
             title: "Instagram Reel Analysis",
             sourceType: 'INSTAGRAM',
-            videoUrl: s3PublicUrl,
+            videoUrl: rawVideoUrl,
             geminiFileUri: uploadResult.uri
         })
 
@@ -574,8 +574,9 @@ const analyzeInstagram = async (req, res) => {
             message: "File downloaded!",
             sessionId: newSession._id,
             analysis: response.text,
-            fileDate: {
-                url: uploadResult.uri, 
+            playableUrl: rawVideoUrl,
+            fileData: {
+                uri: uploadResult.uri, 
                 mimeType: uploadResult.mimeType
             }
         })
@@ -587,6 +588,7 @@ const analyzeInstagram = async (req, res) => {
         // check if file exist or not
         if(fs.existsSync(tempFilePath)) {
             await fs.promises.unlink(tempFilePath)
+            console.log("....CLEANED THE DISK....");
         }
     }
 }
