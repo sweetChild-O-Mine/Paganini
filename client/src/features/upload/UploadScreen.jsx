@@ -136,8 +136,9 @@ export const UploadScreen = () => {
 
       // now we send normla json data here 
       const response = await axios.post(
-        'http://localhost:3000/api/ai/analyze-url',
-        {videoLink: videoLink}, // the body so basically 2nd arguemtn
+        'http://localhost:3000/api/ai/analyze-instagram',
+        // {videoLink: videoLink}, // the body so basically 2nd arguemtn
+        {instagramUrl: videoLink}, // the body so basically 2nd arguemtn
         {
           headers: {
             Authorization: `Bearer ${token}`  // 3rd arg is our headers
@@ -157,7 +158,6 @@ export const UploadScreen = () => {
       console.log("Error analyzing link:", error)
 
       toast("Failed to analyze link. Check the console.")
-
     } finally {
       setIsAnalyzing(false)
     }
