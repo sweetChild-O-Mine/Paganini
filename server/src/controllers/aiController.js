@@ -595,3 +595,5 @@ const analyzeInstagram = async (req, res) => {
 
 // export this thing pweeeeasee
 export { chatWithVideo, analyzeUrl, getSessionHistory, getUserSession, deleteSession, generateUploadUrl, processS3Video, analyzeInstagram }
+
+
