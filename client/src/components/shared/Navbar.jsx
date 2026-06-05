@@ -14,6 +14,25 @@ const Navbar = () => {
         // kick back the user to the login screen coz they ain got token 
         navigate('/login')
     }
+
+    const handleNavigation = (targetId) => {
+        // check if we are on the home page or not 
+        if (window.localStorage.pathname !== '/') {
+            // if not then go the homepage first
+            navigate('/')
+
+            // lets wait for few seconda before we scorll
+            setTimeout(() => {
+                document.getElementById(targetId)?.scrollIntoView({
+                    behavior: 'smooth'
+                })
+            }, 100);
+        } else {
+            // that means we are already at home so just scoll smoothly
+            document.getElementById(targetId)?.scrollIntoView({behavior: 'smooth'})
+        }
+    }
+
   return (
     // Sticky at top, edge-to-edge, backdrop blur, subtle border
     <nav className="w-full sticky top-0 z-50 bg-black/40 backdrop-blur-md border-b border-white/10 px-6 py-4">
@@ -32,9 +51,9 @@ const Navbar = () => {
 
             {/* Center: Simple Links (No heavy navigation-menu needed) */}
             <div className="hidden md:flex items-center gap-8 text-sm font-medium text-neutral-400">
-                <span className="hover:text-white cursor-pointer transition-colors">Features</span>
-                <span className="hover:text-white cursor-pointer transition-colors">How it works</span>
-                <span className="text-white cursor-pointer transition-colors">My Vault</span>
+                <span onClick={() => handleNavigation('features')} className="hover:text-white cursor-pointer transition-colors">Features</span>
+                <span onClick={() => handleNavigation('how-it-works')} className="hover:text-white cursor-pointer transition-colors">How it works</span>
+                <span onClick={() => navigate('/vault')} className="hover:text-white cursor-pointer transition-colors">My Vault</span>
             </div>
 
             {/* Right: Actions */}

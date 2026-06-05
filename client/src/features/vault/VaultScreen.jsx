@@ -52,6 +52,7 @@ export const VaultScreen = () => {
                 file: null,
                 initialData: {
                     sessionId: session._id,
+                    playableUrl: session.videoUrl,
                     fileData: { uri: session.geminiFileUri }
                 }
             }
@@ -101,7 +102,7 @@ export const VaultScreen = () => {
     console.log(sessions)
 
   return (
-    <div className='min-h-screen w-full bg-[#0a0a0a] text-white pt-24 px-6 relative overflow-hidden  '
+    <div className='flex-1 w-full bg-[#0a0a0a] text-white pt-24 px-6 pb-24 relative overflow-x-hidden overflow-y-auto no-scrollbar  '
     >
         {/* the glowing background thing */}
         <div className="absolute top-[22%] left-[10%] w-[500px] h-[500px] bg-blue-500/10 rounded-full blur-[120px] pointer-events-none"/>
@@ -134,7 +135,7 @@ export const VaultScreen = () => {
                     // tmeporary card 
                     <div 
                         key={session._id}
-                        className="border bg-neutral-900/40 backdrop-blur-md border-white/5 rounded-2xl p-6 flex flex-col hover:bg-neutral-800/40 transition-colors shadow-xl duration-100 ">
+                        className="border bg-neutral-900/40 backdrop-blur-md border-white/5 rounded-2xl p-6 flex flex-col hover:bg-neutral-800/40 transition-colors shadow-xl duration-100 h-full">
 
                             {/* card header with data and source tag */}
                             <div className="flex justify-between items-center text-xs text-neutral-400 mb-4  ">
@@ -168,7 +169,7 @@ export const VaultScreen = () => {
                             {/* resume chat button  */}
                             <Button
                                 onClick={() => handleResumeChat(session)}
-                                className={`w-full mt-auto my-2 py-5 bg-white/5 hover:bg-white/10 text-white border border-white/10 transition-all cursor-pointer group`}
+                                className={`w-full mt-auto mb-2 py-5 bg-white/5 hover:bg-white/10 text-white border border-white/10 transition-all cursor-pointer group`}
                             >
         <PlayCircle className="w-4 h-4 mr-2 group-hover:scale-110 transition-transform" />
                 Resume Chat
@@ -182,3 +183,4 @@ export const VaultScreen = () => {
     </div>
   )
 }
+
