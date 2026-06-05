@@ -104,9 +104,11 @@ const analyzeUrl = async (req, res) => {
                         {
                             fileData: {fileUri: videoLink}
                         },
-
                         {
-                            text: "Give me a 3 points summary of the whole video. Basically it should give me the neccessary info about the video."
+                            text: `Analyze this video and return ONLY a raw JSON object with two fields:
+                            "title": A catchy, short title for the video (max 5 words).
+                            "summary": A 3-line summary of what happens in the video.
+                            Do not include markdown formatting or backticks.`
                         }
                     ]
                 }
@@ -115,6 +117,9 @@ const analyzeUrl = async (req, res) => {
 
         console.log("Gemini Analysis Complete!!!");
 
+        const cleanJson = response.text.replace(/```json/gi, '').replace(/```/gi, '').trim();
+        const aiData = JSON.parse(cleanJson);
+
         // save this receipt to the MONGODB
         // we know who the fuck user is coz of our great authMiddleware who gave req.user = userID
 
@@ -122,7 +127,7 @@ const analyzeUrl = async (req, res) => {
         const newSession = await VideoSession.create({
             // and attach userId to this mfking videoSession
             userId: req.user,
-            title: "YouTube Video Analysis",
+            title: aiData.title,
             sourceType: "YOUTUBE",
             videoUrl: videoLink,
             geminiFileUri: videoLink
@@ -132,7 +137,7 @@ const analyzeUrl = async (req, res) => {
         await Message.create({
             sessionId: newSession._id,
             role: 'ai',
-            text: response.text
+            text: aiData.summary
         })
 
 
@@ -142,7 +147,7 @@ const analyzeUrl = async (req, res) => {
             sessionId: newSession._id,  //sedint this id to reasct so that she knwos ki kaunsa sesion hai yeh
             // basically React needs to tell the backend: "Hey, add this chat message to THIS SPECIFIC video session!"
             wasCompressed: false,
-            analysis: response.text,
+            analysis: aiData.summary ,
             fileData: {
                 uri: videoLink, //pasing the yt link back so the caht route can use it
                 name: "youtube_video",
@@ -347,11 +352,21 @@ const processS3Video = async (req, res) => {
                         mimeType: uploadResult.mimeType
                     }},
                     {
-                        text: prompt || "Give me a 3 line summary of the whole video."
+                        // Safely inject their prompt into the JSON instructions!
+                        text: `Analyze this video based on this prompt: "${prompt || 'Give me a summary of the whole video.'}".
+                        Return ONLY a raw JSON object with two fields:
+                        "title": A catchy, short title for the video based on the content (max 5 words).
+                        "summary": The response to the prompt.
+                        Do not include markdown formatting or backticks.`
                     }
+
                 ]
             }]
         })
+
+        console.log("Parsing Gemini JSON for Upload...");
+        const cleanJson = response.text.replace(/```json/gi, '').replace(/```/gi, '').trim();
+        const aiData = JSON.parse(cleanJson);
 
         // aechitecture step 3 : Save it to DB
         // contruct permanent s3 publix url so react can play it later 
@@ -359,7 +374,7 @@ const processS3Video = async (req, res) => {
 
         const newSession = await VideoSession.create({
             userId: req.user, 
-            title: "S3 Video Analysis",
+            title: aiData.title ,
             sourceType: "UPLOAD",
             videoUrl: s3PublicUrl,
             geminiFileUri: uploadResult.uri
@@ -369,14 +384,14 @@ const processS3Video = async (req, res) => {
         await Message.create({
             sessionId: newSession._id,
             role: 'ai',
-            text: response.text
+            text: aiData.summary
         })
 
         // send the vidtory repsonse to our react ji 
         res.status(200).json({
             message: "Success!!!",
             sessionId: newSession._id,
-            analysis: response.text,
+            analysis: aiData.summary,
             fileData: {
                 uri: uploadResult.uri,
                 mimeType: uploadResult.mimeType
@@ -542,7 +557,10 @@ const analyzeInstagram = async (req, res) => {
                         mimeType: uploadResult.mimeType
                     } },
                     {
-                        text: "Give me a 3 line summary of the whole video."
+                        text: `Analyze this video and return ONLY a raw JSON object with two fields:
+                        "title": A catchy, short title for the video (max 5 words).
+                        "summary": A 3-line summary of what happens in the video.
+                        Do not include markdown formatting or backticks.`  
                     }
                 ]
             }]
@@ -550,13 +568,17 @@ const analyzeInstagram = async (req, res) => {
 
         console.log("7. Gemini Analysis Complete. Saving to Database...");
 
+        const cleanJson = response.text.replace(/```json/gi, '').replace(/```/gi, '').trim();
+
+        const aiData = JSON.parse(cleanJson);        
+
         // 3. construct the permant 
         const s3PublicUrl = `https://${process.env.AWS_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${s3Key}`;
 
         // 4. save to mongoDB
         const newSession = await VideoSession.create({
             userId: req.user,
-            title: "Instagram Reel Analysis",
+            title: aiData.title,
             sourceType: 'INSTAGRAM',
             videoUrl: rawVideoUrl,
             geminiFileUri: uploadResult.uri
@@ -565,15 +587,14 @@ const analyzeInstagram = async (req, res) => {
         await Message.create({
             sessionId: newSession._id,
             role: 'ai',
-            text: response.text
+            text: aiData.summary
         })
-
 
         // send it back to the clinet so we can test if step 1 works
         return res.status(200).json({
             message: "File downloaded!",
             sessionId: newSession._id,
-            analysis: response.text,
+            analysis: aiData.summary ,
             playableUrl: rawVideoUrl,
             fileData: {
                 uri: uploadResult.uri, 
@@ -595,5 +616,3 @@ const analyzeInstagram = async (req, res) => {
 
 // export this thing pweeeeasee
 export { chatWithVideo, analyzeUrl, getSessionHistory, getUserSession, deleteSession, generateUploadUrl, processS3Video, analyzeInstagram }
-
-

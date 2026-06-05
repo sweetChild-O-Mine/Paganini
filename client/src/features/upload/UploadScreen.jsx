@@ -134,11 +134,31 @@ export const UploadScreen = () => {
       // 1. grab the tooken from making request from local storage
       const token = localStorage.getItem('paganini_token')
 
+      let endpoint = ''
+      let requestBody = {}
+
+      // 2.the smart check: is it insta or yt
+      if(videoLink.includes('instragram.com')) {
+
+          endpoint= 'http://localhost:3000/api/ai/analyze-url';
+          requestBody = { instagramUrl: videoLink }
+
+      } else if (videoLink.includes('youtube.com') || videoLink.includes('youtu.be') ) {
+
+          endpoint = 'http://localhost:3000/api/ai/analyze-url';
+          requestBody = { videoLink: videoLink }
+
+      } else {
+          toast("Bruh... Please enter a valid YouTube or Instagram link!");
+          setIsAnalyzing(false);
+          return;
+      }
+
       // now we send normla json data here 
       const response = await axios.post(
-        'http://localhost:3000/api/ai/analyze-instagram',
+        endpoint,
         // {videoLink: videoLink}, // the body so basically 2nd arguemtn
-        {instagramUrl: videoLink}, // the body so basically 2nd arguemtn
+        requestBody,
         {
           headers: {
             Authorization: `Bearer ${token}`  // 3rd arg is our headers
@@ -360,7 +380,10 @@ export const UploadScreen = () => {
         )}
 
         {/* featuer ig */}
-        <section className="w-full max-w-6xl mx-auto px-6 mt-32 flex flex-col items-center">
+        <section
+        id='features'
+        className="w-full max-w-6xl mx-auto px-6 mt-32 flex flex-col items-center">
+
           {/* header kinda thing we'll see it  */}
           <div className=" flex flex-col items-center text-center mb-16">
             {/* label */}
@@ -463,7 +486,9 @@ export const UploadScreen = () => {
         </section>
 
         {/* HOW IT WORKSSSSS sir section */}
-        <section className="w-full max-w-6xl mx-auto px-6 mt-40 mb-32 flex flex-col items-center">
+        <section 
+        id="how-it-works"
+        className="w-full max-w-6xl mx-auto px-6 mt-40 mb-32 flex flex-col items-center">
           {/* the headerrrr */}
           <div className="flex flex-col items-center text-center mb-20 ">
             {/* chotu */}
