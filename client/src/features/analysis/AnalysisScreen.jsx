@@ -1,10 +1,11 @@
-import React, { useState, useMemo, useEffect, useEffectEvent} from 'react'
+import React, { useState, useMemo, useEffect, useRef } from 'react'
 import axios from 'axios'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import ReactMarkdown from 'react-markdown';
 import ReactPlayer from 'react-player'
 import { useLocation, useNavigate } from 'react-router-dom';
+import { time } from 'framer-motion';
 
 
 // managaer has sent someth that's why employee willrecienve it and he's doing it
@@ -33,6 +34,37 @@ export const AnalysisScreen = () => {
     const [messages, setMessages] = useState([
         { role : 'ai', text: initialData?.analysis }
     ])
+
+    // create the referecne to the video player
+    const playerRef = useRef(null)
+
+    // 2. funtion to convert "01:09" into pure seconds
+    const timeStrToSeconds = (timeStr) => {
+        const parts = timeStr.split(":").reverse()
+        let seconds = 0
+        for (let i = 0; i< parts.length; i++) {
+            seconds += parseInt(parts[i]) * Math.pow(60, i)
+        }
+        return seconds
+    }
+
+    // the click handler that skips the video
+    const handleTimestampClick = (timeStr) => {
+        const seconds = timeStrToSeconds(timeStr)
+
+        if(playerRef.current) {
+            // check if its reactplyaer or native html player
+            if(playerRef.current.seekTo) {
+                playerRef.current.seekTo(seconds, 'seconds')
+            } else {
+                playerRef.current.currentTime = seconds 
+                // autometically starts playing when they clik on play
+                playerRef.current.play()
+            }
+        }
+    }
+
+
 
     const [input, setInput] = useState('')
     // when gemini doing analysis and trying to generate the response toh us time there must be smth to show
@@ -158,6 +190,7 @@ export const AnalysisScreen = () => {
                 {/* if u got file then show the video */}
                 {file ? (
                     <video 
+                    ref={playerRef}
                     className="w-full max-h-[85vh]  rounded-lg shadow-lg object-contain outline-none "
                     controls
                     src={videoUrl}
@@ -169,6 +202,7 @@ export const AnalysisScreen = () => {
                 rounded-xl shadow-lg overflow-hidden bg-black border border-white/5 h-full
                 ">
                     <ReactPlayer
+                        ref={playerRef}
                         src = {videoUrl}
                         // src = {initialData.fileData.uri}
                         controls
@@ -208,8 +242,34 @@ export const AnalysisScreen = () => {
                         <div className={`prose max-w-none text-sm leading-relaxed
                             ${msg.role === 'ai' ? 'prose-invert' : 'text-black' }
                             `}>
-                            <ReactMarkdown>
-                                {msg.text}
+                            <ReactMarkdown
+                                components={{
+                                    a: ({node, ...props}) => {
+                                        // if link is a timestamp we generated
+                                        if (props.href?.startsWith('#') && /^#\d{1,2}:\d{2}(?::\d{2})?$/.test(props.href)) {
+                                            return (
+                                                <span 
+                                                    onClick={() => handleTimestampClick(props.href.substring(1))}
+
+                                                    className="text-blue-400 cursor-pointer hover:text-blue-300 hover:underline font-mono px-1.5 py-0.5 bg-blue-500/10 rounded-md transition-colors"
+                                                >
+                                                    {props.children}
+                                                </span>
+                                            )
+                                        }
+
+                                        // else just a normla link please
+                                        return <a
+                                        {...props}
+                                        className='text-blue-500 hover:underline'
+                                        target='_blank'
+                                        rel='noopener noreferrer'
+                                        />
+                                    }
+                                }}
+                            >
+                                {/* This Regex finds 00:00 or 00:00:00 and turns it into [00:00](#00:00) before Markdown parses it! */}
+                                {msg.text.replace(/\b(\d{1,2}:\d{2}(?::\d{2})?)\b/g, '[$1](#$1)')}
                             </ReactMarkdown>
                         </div>
                     </div>

@@ -3,7 +3,6 @@ import { useState, useCallback, useMemo} from 'react'
 import { useDropzone } from 'react-dropzone'
 import axios from 'axios'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import { useNavigate } from 'react-router-dom'
 import { useAuthStore } from '@/store/authStore'
 import { toast } from 'sonner'
@@ -138,9 +137,9 @@ export const UploadScreen = () => {
       let requestBody = {}
 
       // 2.the smart check: is it insta or yt
-      if(videoLink.includes('instragram.com')) {
+      if(videoLink.includes('instagram.com')) {
 
-          endpoint= 'http://localhost:3000/api/ai/analyze-url';
+          endpoint = 'http://localhost:3000/api/ai/analyze-instagram';
           requestBody = { instagramUrl: videoLink }
 
       } else if (videoLink.includes('youtube.com') || videoLink.includes('youtu.be') ) {
@@ -484,7 +483,6 @@ export const UploadScreen = () => {
 
           </div>
         </section>
-
         {/* HOW IT WORKSSSSS sir section */}
         <section 
         id="how-it-works"
