@@ -533,14 +533,20 @@ const analyzeInstagram = async (req, res) => {
         let file = await client.files.get({ name: uploadResult.name })
 
         // do the looping mfk
-        while(file.state === "PROCESSING") {
-            console.log("....PROCESSING (waiting 3s)...");
+
+        let retries = 0
+        const MAX_RETRIES = 30
+        while(file.state === "PROCESSING" && retries < MAX_RETRIES) {
+            console.log(`...PROCESSING {Attempt ${retries + 1}/${MAX_RETRIES}} `);
             await new Promise((resolve) => setTimeout(resolve, 3000))
             file = await client.files.get({ name: uploadResult.name })
+
+            retries++
+
         }
 
         // check if its failed or not 
-        if(file.state === "FAILED") {
+        if(file.state === "PROCESSING") {
             throw new Error("Gemini processing failed. The video might be corrupted.")
         }
 
@@ -580,7 +586,7 @@ const analyzeInstagram = async (req, res) => {
             userId: req.user,
             title: aiData.title,
             sourceType: 'INSTAGRAM',
-            videoUrl: rawVideoUrl,
+            videoUrl: s3PublicUrl,
             geminiFileUri: uploadResult.uri
         })
 
@@ -607,7 +613,7 @@ const analyzeInstagram = async (req, res) => {
         res.status(500).json({ error: "RapidAPI decided to take a nap." });
     } finally {
         // check if file exist or not
-        if(fs.existsSync(tempFilePath)) {
+        if(tempFilePath && fs.existsSync(tempFilePath)) {
             await fs.promises.unlink(tempFilePath)
             console.log("....CLEANED THE DISK....");
         }

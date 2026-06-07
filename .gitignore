@@ -1,3 +1,5 @@
 node_modules/
 .env
 *.pem
+*.mp4
+*.mov
