@@ -3,6 +3,8 @@
 @import "shadcn/tailwind.css";
 @import "@fontsource-variable/geist";
 @import url('https://fonts.googleapis.com/css2?family=Felipa&family=Prata&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Corinthia:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Megrim&display=swap');
 
 @plugin "@tailwindcss/typography";
 
@@ -166,6 +168,26 @@
 
 .felipa-regular {
   font-family: "Felipa", serif;
+  font-weight: 400;
+  font-style: normal;
+}
+
+
+.corinthia-regular {
+  font-family: "Corinthia", cursive;
+  font-weight: 400;
+  font-style: normal;
+}
+
+.corinthia-bold {
+  font-family: "Corinthia", cursive;
+  font-weight: 700;
+  font-style: normal;
+}
+
+
+.megrim {
+  font-family: "Megrim", system-ui;
   font-weight: 400;
   font-style: normal;
 }

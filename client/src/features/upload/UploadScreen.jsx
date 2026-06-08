@@ -227,7 +227,7 @@ export const UploadScreen = () => {
 
       {/* main hero section text */}
       <div className="relative z-10 text-center mb-12 mt-10 ">
-        <h1 className="text-5xl md:text-7xl font-bold tracking-tight mb-4 text-transparent bg-clip-text bg-linear-to-r from-neutral-100 to-neutral-500 prata-regular py-2 ">
+        <h1 className="text-5xl md:text-7xl font-bold tracking-tight mb-4 text-transparent bg-clip-text bg-linear-to-r from-neutral-100 to-neutral-500 prata-regular py-2 megrim ">
           Analyze your video with AI
         </h1>
         <p className="text-lg md:text-xl text-neutral-400 max-w-2xl mx-auto">
