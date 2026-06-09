@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input"
 import ReactMarkdown from 'react-markdown';
 import ReactPlayer from 'react-player'
 import { useLocation, useNavigate } from 'react-router-dom';
-import { time } from 'framer-motion';
+import { jsPDF } from "jspdf";
 
 
 // managaer has sent someth that's why employee willrecienve it and he's doing it
@@ -28,6 +28,9 @@ export const AnalysisScreen = () => {
         return null
     }
 
+
+    const [isTyping, setIsTyping] = useState(false)
+    
     // get the teleported data
     const {file, initialData} = location.state
 
@@ -37,6 +40,15 @@ export const AnalysisScreen = () => {
 
     // create the referecne to the video player
     const playerRef = useRef(null)
+    
+    const messageEndRef = useRef(null)
+
+    useEffect(() => {
+        // if tracker exists on the screen then scoll smooth dow to it
+        messageEndRef.current?.scrollIntoView({behavior: 'smooth'})
+    }, [messages, isTyping])
+    
+    
 
     // 2. funtion to convert "01:09" into pure seconds
     const timeStrToSeconds = (timeStr) => {
@@ -68,7 +80,6 @@ export const AnalysisScreen = () => {
 
     const [input, setInput] = useState('')
     // when gemini doing analysis and trying to generate the response toh us time there must be smth to show
-    const [isTyping, setIsTyping] = useState(false)
 
     useEffect(() => {
         const fetchHistory = async () => {
@@ -174,6 +185,35 @@ export const AnalysisScreen = () => {
         }
     }
 
+    const handleDownloadNotes = () => {
+        if (messages.length === 0) return;
+
+        // 1. Build the Transcript with clean spacing
+        const chatTranscript = messages.map(msg => {
+            const sender = msg.role === 'ai' ? '🤖 Paganini AI' : '👤 You';
+            return `### ${sender}\n${msg.text || ''}\n`; 
+        }).join('\n---\n\n'); 
+        
+        const finalDocument = `# Paganini Video Analysis Notes\n\n${chatTranscript}`;
+
+        // 2. Create the file (Notice the type is markdown now!)
+        const blob = new Blob([finalDocument], { type: 'text/markdown;charset=utf-8' });
+        const downloadUrl = URL.createObjectURL(blob);
+        
+        // 3. Download it as a .md file
+        const link = document.createElement('a');
+        link.href = downloadUrl;
+        link.download = 'Paganini_Notes.md'; 
+        
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(downloadUrl);
+    }
+
+
+    
+
   return (
     
     <div className="w-full h-full flex flex-col lg:flex-row overflow-hidden ">
@@ -227,9 +267,21 @@ export const AnalysisScreen = () => {
         <div className="w-full lg:w-[28%] bg-[#0f0f0f]  flex flex-col border-l border-white/5 h-full overflow-hidden  ">
 
             {/*heading kinda thing for chat box */}
-            <div className="font-semibold text-neutral-300 px-6 py-4 border-b border-white/5 flex items-center h-14 bg-[#0a0a0a] ">
-                Ai Assistant
+            <div className="font-semibold text-neutral-300 px-6 py-4 border-b border-white/5 flex items-center justify-between h-14 bg-[#0a0a0a] ">
+                <span>Ai Assistant</span>
+
+
+                {/* the download button  */}
+                <button
+                 onClick={handleDownloadNotes}
+                 className="flex items-center gap-2 px-3 py-1.5 text-xs text-neutral-400 bg-white/5 hover:bg-white/10 hover:text-white 
+                 rounded-md transition-colors border border-white/5 cursor-pointer
+                 ">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLineJoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Export CHat
+                </button>
             </div>
+
 
             {/* the part wehere message will be shown ig */}
             <div className="flex-1 p-4 overflow-y-auto no-scrollbar  ">
@@ -269,7 +321,7 @@ export const AnalysisScreen = () => {
                                 }}
                             >
                                 {/* This Regex finds 00:00 or 00:00:00 and turns it into [00:00](#00:00) before Markdown parses it! */}
-                                {msg.text.replace(/\b(\d{1,2}:\d{2}(?::\d{2})?)\b/g, '[$1](#$1)')}
+                                {(msg.text || "").replace(/\b(\d{1,2}:\d{2}(?::\d{2})?)\b/g, '[$1](#$1)')}
                             </ReactMarkdown>
                         </div>
                     </div>
@@ -280,6 +332,9 @@ export const AnalysisScreen = () => {
                         Gemini is typing...
                     </div>
                 )}
+                
+                {/* our invisible GPS anchor */}
+                <div ref={messageEndRef} />
 
             </div>
 

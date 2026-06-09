@@ -329,14 +329,25 @@ const processS3Video = async (req, res) => {
         console.log("Waiting for Gemini processing...");
         let file = await client.files.get({name: uploadResult.name})
 
-        while(file.state === "PROCESSING") {
+        let retries = 0;
+        let MAX_RETRIES = 30
+
+        while(file.state === "PROCESSING" && retries <= MAX_RETRIES) {
+
+            console.log(`...PROCESSING {Attempt ${retries + 1}/${MAX_RETRIES}} `);
             console.log("....PROCESSING (waiting 2s)...");
             await new Promise((resolve) => setTimeout(resolve, 2000))
             file = await client.files.get({name: uploadResult.name})
+
+            retries += 1;
         }
 
         if(file.state === "FAILED") {
             throw new Error("Gemini processing failed.")
+        }
+
+        if (file.state === "PROCESSING") {
+            throw new Error("Gemini took too long, please try again")
         }
 
         console.log("Video Ready. Generating Content...");
@@ -543,6 +554,10 @@ const analyzeInstagram = async (req, res) => {
 
             retries++
 
+        }
+
+        if(file.state === "FAILED") {
+            throw new Error("Gemini processing failed.")
         }
 
         // check if its failed or not 

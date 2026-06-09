@@ -41,11 +41,11 @@ const Navbar = () => {
             
             {/* Left: Logo */}
             <div 
-                className="flex items-center gap-2 cursor-pointer">
+                className="flex items-center gap-2 cursor-pointer megrim ">
 
                 <span 
                     onClick={() => navigate('/')}
-                    className="font-bold text-white tracking-wide text-xl">Paganini
+                    className="font-bold text-white tracking-wide text-xl ">Paganini
                 </span>
             </div>
 
