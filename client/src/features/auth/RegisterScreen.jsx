@@ -20,12 +20,12 @@ export const RegisterScreen = () => {
         // stop the page from refreshing 
         e.preventDefault()
 
-        console.log("User wants to register with:", name,email, password)
+        console.log("User wants to register with:", name, email, password)
 
         // the axiosss
         try {
             // 1. send data to mfking backend
-            const response = await axios.post('http://localhost:3000/api/auth/register', {
+            const response = await axios.post('https://13.203.76.37.nip.io/api/auth/register', {
                 name: name,
                 email: email,
                 password: password
@@ -49,73 +49,73 @@ export const RegisterScreen = () => {
         }
     }
 
-  return (
-    <div className='border mt-20 w-full max-w-md mx-auto p-8 bg-neutral-900 border-neutral-800 rounded-2xl shadow-2xl'>
-         <h2 className="text-2xl font-bold text-white mb-6 text-center">
-            Create an Account
-        </h2>
+    return (
+        <div className='border mt-20 w-full max-w-md mx-auto p-8 bg-neutral-900 border-neutral-800 rounded-2xl shadow-2xl'>
+            <h2 className="text-2xl font-bold text-white mb-6 text-center">
+                Create an Account
+            </h2>
 
-        <form 
-        onSubmit={handleSubmit}
-        className="flex flex-col gap-4">
-            {/* div 1 for name*/}
-            <div className="flex flex-col gap-2">
-                <label htmlFor="name" className="text-sm text-neutral-400">Name</label>
-                <Input
-                type={name}
-                placeholder='Michael Jackson'
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="bg-neutral-800 border-neutral-700 text-white
+            <form
+                onSubmit={handleSubmit}
+                className="flex flex-col gap-4">
+                {/* div 1 for name*/}
+                <div className="flex flex-col gap-2">
+                    <label htmlFor="name" className="text-sm text-neutral-400">Name</label>
+                    <Input
+                        type={name}
+                        placeholder='Michael Jackson'
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        className="bg-neutral-800 border-neutral-700 text-white
                 required
                 " />
-            </div>
+                </div>
 
-            {/* div for gmail */}
-            <div className="flex flex-col gap-2">
-                <label htmlFor="name" className="text-sm text-neutral-400">Email</label>
-                <Input
-                type={email}
-                placeholder='michael@gmail.com'
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="bg-neutral-800 border-neutral-700 text-white
+                {/* div for gmail */}
+                <div className="flex flex-col gap-2">
+                    <label htmlFor="name" className="text-sm text-neutral-400">Email</label>
+                    <Input
+                        type={email}
+                        placeholder='michael@gmail.com'
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        className="bg-neutral-800 border-neutral-700 text-white
                 required
                 " />
-            </div>
+                </div>
 
-            {/* div for password */}
-            <div className="flex flex-col gap-2">
-                <label htmlFor="name" className="text-sm text-neutral-400">Pasword</label>
-                <Input
-                type={password}
-                // placeholder='Michael Jackson'
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="bg-neutral-800 border-neutral-700 text-white
+                {/* div for password */}
+                <div className="flex flex-col gap-2">
+                    <label htmlFor="name" className="text-sm text-neutral-400">Pasword</label>
+                    <Input
+                        type={password}
+                        // placeholder='Michael Jackson'
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        className="bg-neutral-800 border-neutral-700 text-white
                 required
                 " />
-            </div>
+                </div>
 
-            <Button
-            type="submit"
-            className="w-full mt-4 bg-white text-black cursor-pointer hover:bg-neutral-200"
-            >
-                Register
-            </Button>
+                <Button
+                    type="submit"
+                    className="w-full mt-4 bg-white text-black cursor-pointer hover:bg-neutral-200"
+                >
+                    Register
+                </Button>
 
-            <p className="mt-6 text-center text-sm text-neutral-500">
-                Already have an account? <span
-                onClick={() => navigate('/login')}
-                className="mx-1 text-white cursor-pointer hover:underline">
-                    Login
-                </span>
-            </p>
+                <p className="mt-6 text-center text-sm text-neutral-500">
+                    Already have an account? <span
+                        onClick={() => navigate('/login')}
+                        className="mx-1 text-white cursor-pointer hover:underline">
+                        Login
+                    </span>
+                </p>
 
-        </form>
+            </form>
 
-    </div>
+        </div>
 
-  )
+    )
 }
 
