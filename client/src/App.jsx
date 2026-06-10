@@ -16,10 +16,11 @@ function App() {
   return (
     <>
     {/* the main outer div */}
-      <div className="bg-neutral-900 h-screen w-full text-white flex flex-col items-center overflow-hidden">
+      <div className="bg-neutral-900 min-h-screen md:h-screen  w-full text-white flex flex-col items-center overflow-y-auto md:overflow-hidden ">
           <Navbar />
 
           {/* oure sexy Routes <3  */}
+          
           <Routes>
             <Route path='/' element={<UploadScreen/>} />
             <Route path='/analysis' element={<AnalysisScreen/>} />

@@ -215,7 +215,7 @@ export const UploadScreen = () => {
 
 
   return (
-    <div className='relative w-full min-h-screen flex flex-col items-center  overflow-y-auto no-scrollbar py-20 '>
+    <div className='relative w-full min-h-screen flex flex-col items-center  overflow-y-auto overflow-x-hidden no-scrollbar py-20 '>
 
       {/* Ye rahe tere Background Glows (Inse Glass effect zinda hoga) */}
       <div className="absolute top-[20%] left-[20%] w-[400px] h-[400px] bg-blue-500/10 rounded-full blur-[120px] pointer-events-none"></div>
@@ -344,7 +344,7 @@ export const UploadScreen = () => {
                 </div>
 
                 {/* main input box  */}
-                <div className="flex gap-3 mt-2">
+                <div className="flex flex-col sm:flex-row gap-3 mt-2">
                   <input
                     type="url"
                     placeholder='Paste YouTube or Instagram link here...'
