@@ -225,26 +225,29 @@ export const UploadScreen = () => {
       <div className="absolute bottom-[20%] right-[20%] w-[400px] h-[400px] bg-purple-500/10 rounded-full blur-[120px] pointer-events-none"></div>
 
       {/* wrapper is needed sir  */}
-      <div className="w-full flex flex-col items-center justify-center min-h-[80vh] ">
+      <div className="w-full flex flex-col items-center justify-center min-h-[80vh] px-4 sm:px-6">
 
         {/* main hero section text */}
         <div className="relative z-10 text-center mb-12 mt-10 ">
-          <h1 className="text-5xl md:text-7xl font-bold tracking-tight mb-4 text-transparent bg-clip-text bg-linear-to-r from-neutral-100 to-neutral-500 prata-regular py-2 megrim ">
+
+          <h1 className="text-4xl sm:text-5xl md:text-7xl font-bold tracking-tight mb-4 text-transparent bg-clip-text bg-linear-to-r from-neutral-100 to-neutral-500 prata-regular py-2 megrim  ">
             Analyze your video with AI
           </h1>
-          <p className="text-lg md:text-xl text-neutral-400 max-w-2xl mx-auto">
+
+          <p className="text-lg md:text-xl text-neutral-400 max-w-2xl mx-auto ">
             Upload any video and let Paganini uncover its secrets, generate insights, and answer your questions in real-time.
           </p>
+
         </div>
 
-        <div className="relative z-10 overflow-hidden w-full max-w-3xl bg-neutral-950/40 backdrop-blur-2xl border border-white/10 rounded-3xl p-8  shadow-[0_0_50px_rgba(0,0,0,0.5)]">
+        <div className="relative z-10 overflow-hidden w-full max-w-3xl bg-neutral-950/40 backdrop-blur-2xl border border-white/10 rounded-3xl p-6 sm:p-8  shadow-[0_0_50px_rgba(0,0,0,0.5)]">
 
           {/* checck if file state me actualy koi file hai bhi ya nahi...if it izz there then show the video player and if its not then just show the dropzone */}
           {file ? (
             <div className="w-full flex flex-col items-center justify-center mt-10 space-y-4">
 
               {/* the sleek attachment card they say  */}
-              <div className="w-full max-w-lg p-4 rounded-2xl border border-white/10 bg-neutral-900/50 backdrop-blur-xl flex items-center justify-between shadow-2xl">
+              <div className="w-full max-w-lg p-4 rounded-2xl border border-white/10 bg-neutral-900/50 backdrop-blur-xl flex items-center justify-between shadow-2xl ">
                 <div className="flex items-center gap-4">
 
                   {/* file icon */}
@@ -321,7 +324,7 @@ export const UploadScreen = () => {
                 ) : (
                   <div className="text-center">
 
-                    <p className='text-xl text-neutral-400 font-semibold mb-2'>Click or drag video to upload</p>
+                    <p className='text-lg md:text-xl text-neutral-400 font-semibold mb-2'>Click or drag video to upload</p>
 
                     <p className="text-sm text-neutral-500">
                       MP4, WebM, or OGG up to 2GB
@@ -348,13 +351,17 @@ export const UploadScreen = () => {
                   <input
                     type="url"
                     placeholder='Paste YouTube or Instagram link here...'
-                    className="flex-1 bg-white/5 border border-white/10 text-white/95 rounded-xl h-12 px-4 focus-visible:ring-1 focus-visible:ring-neutral-900 text-base"
+                    className="flex-1 bg-white/5 border border-white/10 text-white/95 rounded-xl h-12 px-4 focus-visible:ring-1 focus-visible:ring-neutral-900 text-base
+                    placeholder:sm:text-sm placeholder:md:text-base py-2
+                    "
                     value={videoLink}
                     onChange={(e) => setVideoLink(e.target.value)}
                   />
 
                   <Button
-                    className="h-12 px-6 rounded-xl bg-white text-black font-semibold hover:bg-neutral-200 transition-all shadow-[0_0_15px_rgba(255,255,255,0.1)] cursor-pointer"
+                    className="h-12 px-6 rounded-xl bg-white text-black font-semibold hover:bg-neutral-200 transition-all shadow-[0_0_15px_rgba(255,255,255,0.1)] cursor-pointer 
+                    w-full sm:w-auto shrink-0
+                    "
                     onClick={handleLinkAnalyze}
                     disabled={isAnalyzing}
                   >
@@ -415,7 +422,7 @@ export const UploadScreen = () => {
           <div className="absolute -right-20 bottom-8 w-72 h-72 bg-purple-500/20 rounded-full blur-[101px] pointer-events-none " />
 
           {/* feature card 1  */}
-          <div className="h-64 border border-white/10 rounded-2xl bg-neutral-950/50 p-8 flex flex-col justify-start  backdrop-blur-xl relative overflow-hidden z-10">
+          <div className="min-h-64 border border-white/10 rounded-2xl bg-neutral-950/50 p-8 flex flex-col justify-start  backdrop-blur-xl relative overflow-hidden z-10">
 
             {/* icon wrapper */}
             <div className="w-10 h-10 border rounded-full border-white/10 bg-neutral-900 flex items-center justify-center mb-6 ">
@@ -437,7 +444,7 @@ export const UploadScreen = () => {
 
 
           {/* feature card 2  */}
-          <div className="h-64 border border-white/10 rounded-2xl bg-neutral-950/50 p-8 flex flex-col justify-start backdrop-blur-xl relative overflow-hidden z-10 ">
+          <div className="min-h-64 border border-white/10 rounded-2xl bg-neutral-950/50 p-8 flex flex-col justify-start backdrop-blur-xl relative overflow-hidden z-10 ">
 
             {/* icon wrapper */}
             <div className="w-10 h-10 border rounded-full border-white/10 bg-neutral-900 flex items-center justify-center mb-6 ">
@@ -460,7 +467,7 @@ export const UploadScreen = () => {
 
 
           {/* feature card 3  */}
-          <div className="h-64 border border-white/10 rounded-2xl bg-neutral-950/50 p-8 flex flex-col justify-start backdrop-blur-xl relative overflow-hidden z-10 ">
+          <div className="min-h-64 border border-white/10 rounded-2xl bg-neutral-950/50 p-8 flex flex-col justify-start backdrop-blur-xl relative overflow-hidden z-10 ">
 
             {/* icon wrapper */}
             <div className="w-10 h-10 border rounded-full border-white/10 bg-neutral-900 flex items-center justify-center mb-6 ">

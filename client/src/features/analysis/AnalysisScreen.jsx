@@ -213,10 +213,9 @@ export const AnalysisScreen = () => {
 
 
 
-
     return (
 
-        <div className="w-full h-full flex flex-col lg:flex-row overflow-hidden ">
+        <div className="w-full min-h-[calc(100dvh-56px)]  lg:h-full flex flex-col lg:flex-row overflow-hidden ">
 
             {/* left part of the screeen */}
             <div className=" lg:w-[72%] bg-black  flex flex-col items-center  ">

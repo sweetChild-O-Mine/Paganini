@@ -107,9 +107,9 @@ const Navbar = () => {
         {isMenuOpen && (
             <div className="md:hidden flex flex-col gap-4 px-4 py-6 border-t border-white/10 ">
         {/* Nav links */}
-        <span onClick={() => { handleNavigation('features'); setIsMenuOpen(false) }} className="text-neutral-300 hover:text-white cursor-pointer transition-colors text-sm font-medium">Features</span>
-        <span onClick={() => { handleNavigation('how-it-works'); setIsMenuOpen(false) }} className="text-neutral-300 hover:text-white cursor-pointer transition-colors text-sm font-medium">How it works</span>
-        <span onClick={() => { navigate('/vault'); setIsMenuOpen(false) }} className="text-neutral-300 hover:text-white cursor-pointer transition-colors text-sm font-medium">My Vault</span>
+        <span onClick={() => { handleNavigation('features'); setIsMenuOpen(false) }} className="text-neutral-300 hover:text-white cursor-pointer transition-colors text-base font-medium py-1">Features</span>
+        <span onClick={() => { handleNavigation('how-it-works'); setIsMenuOpen(false) }} className="text-neutral-300 hover:text-white cursor-pointer transition-colors text-base font-medium py-1">How it works</span>
+        <span onClick={() => { navigate('/vault'); setIsMenuOpen(false) }} className="text-neutral-300 hover:text-white cursor-pointer transition-colors text-base font-medium py-1">My Vault</span>
 
         {/* Auth buttons */}
         <div className="pt-2 border-t border-white/5">
