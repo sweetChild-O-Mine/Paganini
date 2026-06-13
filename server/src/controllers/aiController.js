@@ -10,6 +10,7 @@ import os from 'os'
 import fs from 'fs'
 import axios from 'axios'
 import { pipeline } from 'stream/promises'
+import { myQueue } from '../queues/videoQueue.js'
 
 dotenv.config()
 
@@ -268,153 +269,21 @@ const processS3Video = async (req, res) => {
 
     // 2. set up temporary home fo rhtis file nigg
     // os.tempdir() find the fault temp foleder on any OS
-    const tempFilePath = path.join(os.tmpdir(), `paganini-${Date.now()}mp4`)
+    // const tempFilePath = path.join(os.tmpdir(), `paganini-${Date.now()}mp4`)
 
     try {
-        console.log("1. Me(Express) Asking AWS ji for the file stream...");
-
-        // 3. ask mfkin aws pleaeeee to send the file bytessss
-        const command = new GetObjectCommand({
-            Bucket: process.env.AWS_BUCKET_NAME,
-            Key: s3Key
+        const job = await myQueue.add("process-s3-video", {
+            s3Key,
+            prompt,
+            userId: req.user
         })
 
-        const s3Response = await s3Client.send(command)
-
-        // stream to ssd to prevent ram overload bruhh
-        console.log("2. Streaming to SSD to prevent RAM overload");
-
-        // 4. the maigic pipeline which byPasses the ram fr 
- 
-        // 4. The Bulletproof Download (Bypassing the Stream Glitch)
-        console.log("2. Downloading file from S3...");
-        
-        // This natively downloads the file from AWS
-        const byteArray = await s3Response.Body.transformToByteArray();
-
-        console.log("2.1 Started writing file to SSD");
-        
-        // Instantly write it to your SSD
-        fs.writeFileSync(tempFilePath, byteArray);
-
-
-        console.log("3. File succesFully saved to SSD");
-
-
-
-        console.log("File Sucessfully saved to Disk:", tempFilePath);
-
-
-        // Architecture step 5:- handle the file to geminni using mfk 
-        console.log("4.Upalding to Google's Gemini...");
-
-        const client = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY,
-            requestOptions: { timeout: 600000 }
-        });
-
-        const uploadResult = await client.files.upload({
-            file: tempFilePath,
-            config: {
-                mimeType: 'video/mp4',
-                displayName: "S3 Video Analysis"
-            }
-        })
-
-        // architecture step 6: - the clean up 
-        // so the moment gemini confirms reciept...we will delte the local file no : )
-        console.log("5. Cleaning up local temp file.. ");
-        fs.unlinkSync(tempFilePath)
-
-        // the waiting game
-        console.log("Waiting for Gemini processing...");
-        let file = await client.files.get({name: uploadResult.name})
-
-        let retries = 0;
-        let MAX_RETRIES = 30
-
-        while(file.state === "PROCESSING" && retries <= MAX_RETRIES) {
-
-            console.log(`...PROCESSING {Attempt ${retries + 1}/${MAX_RETRIES}} `);
-            console.log("....PROCESSING (waiting 2s)...");
-            await new Promise((resolve) => setTimeout(resolve, 2000))
-            file = await client.files.get({name: uploadResult.name})
-
-            retries += 1;
-        }
-
-        if(file.state === "FAILED") {
-            throw new Error("Gemini processing failed.")
-        }
-
-        if (file.state === "PROCESSING") {
-            throw new Error("Gemini took too long, please try again")
-        }
-
-        console.log("Video Ready. Generating Content...");
-
-        // do the analysis now 
-        const response = await client.models.generateContent({
-            model: 'gemini-2.5-flash',
-            contents: [{
-                role: 'user',
-                parts: [
-                    {fileData: { 
-                        fileUri : uploadResult.uri,
-                        mimeType: uploadResult.mimeType
-                    }},
-                    {
-                        // Safely inject their prompt into the JSON instructions!
-                        text: `Analyze this video based on this prompt: "${prompt || 'Give me a summary of the whole video.'}".
-                        Return ONLY a raw JSON object with two fields:
-                        "title": A catchy, short title for the video based on the content (max 5 words).
-                        "summary": The response to the prompt.
-                        Do not include markdown formatting or backticks.`
-                    }
-
-                ]
-            }]
-        })
-
-        console.log("Parsing Gemini JSON for Upload...");
-        const cleanJson = response.text.replace(/```json/gi, '').replace(/```/gi, '').trim();
-        const aiData = JSON.parse(cleanJson);
-
-        // aechitecture step 3 : Save it to DB
-        // contruct permanent s3 publix url so react can play it later 
-        const s3PublicUrl = `https://${process.env.AWS_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${s3Key}`
-
-        const newSession = await VideoSession.create({
-            userId: req.user, 
-            title: aiData.title ,
-            sourceType: "UPLOAD",
-            videoUrl: s3PublicUrl,
-            geminiFileUri: uploadResult.uri
-        })
-
-        // nowo create the message 
-        await Message.create({
-            sessionId: newSession._id,
-            role: 'ai',
-            text: aiData.summary
-        })
-
-        // send the vidtory repsonse to our react ji 
-        res.status(200).json({
-            message: "Success!!!",
-            sessionId: newSession._id,
-            analysis: aiData.summary,
-            fileData: {
-                uri: uploadResult.uri,
-                mimeType: uploadResult.mimeType
-            }
+        return res.status(202).json({
+            message: "Your video is being processed",
+            jobId: job.id
         })
     } catch (error) {
         console.error("Error Processing S3 Video", error)
-
-        // bhagwan na kare but if gemini crashes, we still need to delete the local file 
-        if(fs.existsSync(tempFilePath)) {
-            fs.unlinkSync(tempFilePath)
-        }
 
         res.status(500).json({
             error: "Failed to process video from S3!!!"
