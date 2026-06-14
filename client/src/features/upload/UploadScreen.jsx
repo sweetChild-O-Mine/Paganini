@@ -1,4 +1,8 @@
 import React from 'react'
+
+// SWITCH HERE: comment one, uncomment the other
+const BASE_URL = 'http://localhost:3000'
+// const BASE_URL = 'https://13.203.76.37.nip.io'
 import { useState, useCallback, useMemo } from 'react'
 import { useDropzone } from 'react-dropzone'
 import axios from 'axios'
@@ -27,6 +31,39 @@ export const UploadScreen = () => {
 
   // get the token sirrr
   const token = useAuthStore((state) => state.token)
+
+  // helper that polls until the job is done 
+  // takes the jobId and token and return sesionId when done
+  const pollJobStatus = async (jobId, token) => {
+    // total no. of time we'll try before givign up 
+    const MAX_POLLS = 120 //120*3s = 3600 seconds or 6 min
+
+    for (let i = 0; i < MAX_POLLS; i++) {
+      // wiat for 3 seconds ebfore every check 
+      await new Promise(resolve => setTimeout(resolve, 3000))
+
+      const poll = await axios.get(
+        `${BASE_URL}/api/ai/job-status/${jobId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        }
+      )
+
+      if (poll.data.status === 'completed') {
+        return poll.data
+      }
+
+      if (poll.data.status === 'failed') {
+        throw new Error(poll.data.error || "Processing failed")
+      }
+
+      // if waiting or actinve then the loop will still KEEEEPP GOINNNGGGGG
+    }
+
+    throw new Error("Timed out waiting for video processing")
+  }
 
   // handleAnalyze funtion for
   const handleAnalyze = async () => {
@@ -57,7 +94,7 @@ export const UploadScreen = () => {
 
       // ask backend for the presigned url
       const urlResponse = await axios.post(
-        'https://13.203.76.37.nip.io/api/ai/upload-url',
+        `${BASE_URL}/api/ai/upload-url`,
         {
           fileName: file.name,
           fileType: file.type
@@ -82,9 +119,12 @@ export const UploadScreen = () => {
 
 
       // STEP 3 : Tell the backend to analyze the S3 file
-      toast.loading("Step 3/3: Gemini is Analyzing...", { id: "upload" });
-      const analysisResponse = await axios.post(
-        'https://13.203.76.37.nip.io/api/ai/process-s3',
+      toast.loading("Step 3/3: Queued! Processing in background...", { id: "upload" });
+
+
+
+      const queueResponse = await axios.post(
+        `${BASE_URL}/api/ai/process-s3`,
         {
           s3Key: s3Key,
           prompt: "Give me a 3 line summary of the whole video."
@@ -94,15 +134,24 @@ export const UploadScreen = () => {
         }
       )
 
-      toast.success("Analysis Complete!", {
-        id: 'upload'
-      })
+      const { jobId } = queueResponse.data
+
+      // poll until done
+      toast.loading("Processing video... this may take a minute ☕", { id: "upload" })
+
+      const { sessionId, playableUrl, fileData } = await pollJobStatus(jobId, token)
+
 
       // teleport to tha analysis screeen
       navigate('/analysis', {
         state: {
           file: file,
-          initialData: analysisResponse.data
+          initialData: {
+            sessionId: sessionId,
+            playableUrl: playableUrl,
+            fileData: fileData,
+            analysis: "Your video has been analyzed! Ask me anything 👇"
+          }
         }
       })
 
@@ -139,12 +188,12 @@ export const UploadScreen = () => {
       // 2.the smart check: is it insta or yt
       if (videoLink.includes('instagram.com')) {
 
-        endpoint = 'https://13.203.76.37.nip.io/api/ai/analyze-instagram';
+        endpoint = `${BASE_URL}/api/ai/analyze-instagram`;
         requestBody = { instagramUrl: videoLink }
 
       } else if (videoLink.includes('youtube.com') || videoLink.includes('youtu.be')) {
 
-        endpoint = 'https://13.203.76.37.nip.io/api/ai/analyze-url';
+        endpoint = `${BASE_URL}/api/ai/analyze-url`;
         requestBody = { videoLink: videoLink }
 
       } else {
@@ -165,14 +214,38 @@ export const UploadScreen = () => {
         }
       );
 
-      console.log("Link Analysis Response:", response.data)
+      // for insta
+      if (videoLink.includes('instagram.com')) {
+        // poll for insta
+        const { jobId } = response.data
 
-      // now pass the data to app.jsx
-      navigate('/analysis', {
-        state: {
-          file: null, initialData: response.data
-        }
-      })
+        // call the pollin fucntion
+        const { sessionId, playableUrl, fileData } = await pollJobStatus(jobId, token)
+
+        navigate('/analysis', {
+          state: {
+            file: file,
+            initialData: {
+              sessionId: sessionId,
+              playableUrl: playableUrl,
+              fileData: fileData,
+              analysis: "Your video has been analyzed! Ask me anything 👇"
+            }
+          }
+        })
+
+      } else {
+
+        console.log("Link Analysis Response:", response.data)
+
+        // now pass the data to app.jsx
+        navigate('/analysis', {
+          state: {
+            file: null, initialData: response.data
+          }
+        })
+      }
+
 
     } catch (error) {
 
@@ -215,7 +288,7 @@ export const UploadScreen = () => {
 
 
   return (
-    <div className='relative w-full min-h-screen flex flex-col items-center  overflow-y-auto no-scrollbar py-20 '>
+    <div className='relative w-full min-h-screen flex flex-col items-center  overflow-y-auto overflow-x-hidden no-scrollbar py-20 '>
 
       {/* Ye rahe tere Background Glows (Inse Glass effect zinda hoga) */}
       <div className="absolute top-[20%] left-[20%] w-[400px] h-[400px] bg-blue-500/10 rounded-full blur-[120px] pointer-events-none"></div>
@@ -225,26 +298,29 @@ export const UploadScreen = () => {
       <div className="absolute bottom-[20%] right-[20%] w-[400px] h-[400px] bg-purple-500/10 rounded-full blur-[120px] pointer-events-none"></div>
 
       {/* wrapper is needed sir  */}
-      <div className="w-full flex flex-col items-center justify-center min-h-[80vh] ">
+      <div className="w-full flex flex-col items-center justify-center min-h-[80vh] px-4 sm:px-6">
 
         {/* main hero section text */}
         <div className="relative z-10 text-center mb-12 mt-10 ">
-          <h1 className="text-5xl md:text-7xl font-bold tracking-tight mb-4 text-transparent bg-clip-text bg-linear-to-r from-neutral-100 to-neutral-500 prata-regular py-2 megrim ">
+
+          <h1 className="text-4xl sm:text-5xl md:text-7xl font-bold tracking-tight mb-4 text-transparent bg-clip-text bg-linear-to-r from-neutral-100 to-neutral-500 prata-regular py-2 megrim  ">
             Analyze your video with AI
           </h1>
-          <p className="text-lg md:text-xl text-neutral-400 max-w-2xl mx-auto">
+
+          <p className="text-lg md:text-xl text-neutral-400 max-w-2xl mx-auto ">
             Upload any video and let Paganini uncover its secrets, generate insights, and answer your questions in real-time.
           </p>
+
         </div>
 
-        <div className="relative z-10 overflow-hidden w-full max-w-3xl bg-neutral-950/40 backdrop-blur-2xl border border-white/10 rounded-3xl p-8  shadow-[0_0_50px_rgba(0,0,0,0.5)]">
+        <div className="relative z-10 overflow-hidden w-full max-w-3xl bg-neutral-950/40 backdrop-blur-2xl border border-white/10 rounded-3xl p-6 sm:p-8  shadow-[0_0_50px_rgba(0,0,0,0.5)]">
 
           {/* checck if file state me actualy koi file hai bhi ya nahi...if it izz there then show the video player and if its not then just show the dropzone */}
           {file ? (
             <div className="w-full flex flex-col items-center justify-center mt-10 space-y-4">
 
               {/* the sleek attachment card they say  */}
-              <div className="w-full max-w-lg p-4 rounded-2xl border border-white/10 bg-neutral-900/50 backdrop-blur-xl flex items-center justify-between shadow-2xl">
+              <div className="w-full max-w-lg p-4 rounded-2xl border border-white/10 bg-neutral-900/50 backdrop-blur-xl flex items-center justify-between shadow-2xl ">
                 <div className="flex items-center gap-4">
 
                   {/* file icon */}
@@ -321,7 +397,7 @@ export const UploadScreen = () => {
                 ) : (
                   <div className="text-center">
 
-                    <p className='text-xl text-neutral-400 font-semibold mb-2'>Click or drag video to upload</p>
+                    <p className='text-lg md:text-xl text-neutral-400 font-semibold mb-2'>Click or drag video to upload</p>
 
                     <p className="text-sm text-neutral-500">
                       MP4, WebM, or OGG up to 2GB
@@ -344,17 +420,21 @@ export const UploadScreen = () => {
                 </div>
 
                 {/* main input box  */}
-                <div className="flex gap-3 mt-2">
+                <div className="flex flex-col sm:flex-row gap-3 mt-2">
                   <input
                     type="url"
                     placeholder='Paste YouTube or Instagram link here...'
-                    className="flex-1 bg-white/5 border border-white/10 text-white/95 rounded-xl h-12 px-4 focus-visible:ring-1 focus-visible:ring-neutral-900 text-base"
+                    className="flex-1 bg-white/5 border border-white/10 text-white/95 rounded-xl h-12 px-4 focus-visible:ring-1 focus-visible:ring-neutral-900 text-base
+                    placeholder:sm:text-sm placeholder:md:text-base py-2
+                    "
                     value={videoLink}
                     onChange={(e) => setVideoLink(e.target.value)}
                   />
 
                   <Button
-                    className="h-12 px-6 rounded-xl bg-white text-black font-semibold hover:bg-neutral-200 transition-all shadow-[0_0_15px_rgba(255,255,255,0.1)] cursor-pointer"
+                    className="h-12 px-6 rounded-xl bg-white text-black font-semibold hover:bg-neutral-200 transition-all shadow-[0_0_15px_rgba(255,255,255,0.1)] cursor-pointer 
+                    w-full sm:w-auto shrink-0
+                    "
                     onClick={handleLinkAnalyze}
                     disabled={isAnalyzing}
                   >
@@ -415,7 +495,7 @@ export const UploadScreen = () => {
           <div className="absolute -right-20 bottom-8 w-72 h-72 bg-purple-500/20 rounded-full blur-[101px] pointer-events-none " />
 
           {/* feature card 1  */}
-          <div className="h-64 border border-white/10 rounded-2xl bg-neutral-950/50 p-8 flex flex-col justify-start  backdrop-blur-xl relative overflow-hidden z-10">
+          <div className="min-h-64 border border-white/10 rounded-2xl bg-neutral-950/50 p-8 flex flex-col justify-start  backdrop-blur-xl relative overflow-hidden z-10">
 
             {/* icon wrapper */}
             <div className="w-10 h-10 border rounded-full border-white/10 bg-neutral-900 flex items-center justify-center mb-6 ">
@@ -437,7 +517,7 @@ export const UploadScreen = () => {
 
 
           {/* feature card 2  */}
-          <div className="h-64 border border-white/10 rounded-2xl bg-neutral-950/50 p-8 flex flex-col justify-start backdrop-blur-xl relative overflow-hidden z-10 ">
+          <div className="min-h-64 border border-white/10 rounded-2xl bg-neutral-950/50 p-8 flex flex-col justify-start backdrop-blur-xl relative overflow-hidden z-10 ">
 
             {/* icon wrapper */}
             <div className="w-10 h-10 border rounded-full border-white/10 bg-neutral-900 flex items-center justify-center mb-6 ">
@@ -460,7 +540,7 @@ export const UploadScreen = () => {
 
 
           {/* feature card 3  */}
-          <div className="h-64 border border-white/10 rounded-2xl bg-neutral-950/50 p-8 flex flex-col justify-start backdrop-blur-xl relative overflow-hidden z-10 ">
+          <div className="min-h-64 border border-white/10 rounded-2xl bg-neutral-950/50 p-8 flex flex-col justify-start backdrop-blur-xl relative overflow-hidden z-10 ">
 
             {/* icon wrapper */}
             <div className="w-10 h-10 border rounded-full border-white/10 bg-neutral-900 flex items-center justify-center mb-6 ">
