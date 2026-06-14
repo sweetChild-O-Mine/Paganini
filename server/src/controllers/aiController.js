@@ -282,6 +282,7 @@ const processS3Video = async (req, res) => {
             message: "Your video is being processed",
             jobId: job.id
         })
+        
     } catch (error) {
         console.error("Error Processing S3 Video", error)
 
@@ -293,214 +294,22 @@ const processS3Video = async (req, res) => {
 
 const analyzeInstagram = async (req, res) => {
     let tempFilePath = null
+    const { instagramUrl } = req.body
 
     try {
-        // check if the actuall stuff exist or not 
-        const { instagramUrl } = req.body
-           
-        if(!instagramUrl) {
-            return res.status(400).json({
-                error: "Provide a valid Instagram reel url"
-            })
-        }
-
-        // we neet shortcode 
-        const regex = /\/(?:p|reel)\/([a-zA-Z0-9_-]+)/;
-
-        const match = instagramUrl.match(regex);
-        const shortcode = match ? match[1] : null
-        
-        if(!shortcode) {
-            return res.status(400).json({
-
-                error: "Invalid Instagram URL format. Could not find shortcode."
-
-            })
-        }
-
-        console.log("shortcode found in URL is", shortcode);
-
-        
-        console.log("1. Interogating RapidAPI for the raw mp4 link...");
-
-        // url
-        const rapidApiUrl = "https://instagram120.p.rapidapi.com/api/instagram/mediaByShortcode"
-
-        // api call now 
-        // axios.post(URL, BODY, CONFIG_AND_HEADERS)
-        const rapidApiResponse = await axios.post(
-            rapidApiUrl,  //url
-            {
-                shortcode: shortcode
-            },
-            {
-                headers: {
-                    'x-rapidapi-key': process.env.RAPIDAPI_KEY,
-                    'x-rapidapi-host': 'instagram120.p.rapidapi.com', // Tera RapidAPI host
-                    'Content-Type': 'application/json'
-                },
-                timeout: 10000
-            }
-        )
-
-        console.log(rapidApiResponse);
-
-        const data = rapidApiResponse.data
-
-        if(!data || !data[0] || !data[0].urls || !data[0].urls[0] || !data[0].urls[0].url ) {
-            throw new Error("RapidAPI betrayed us. No video URL found in the payload.")
-        }
-
-        // extact the url form it now
-        const rawVideoUrl = data[0].urls[0].url
-
-        console.log("Got the raw MP4 URL! Commencing the heist...");
-
-        console.log(rawVideoUrl);
-
-        // work from here 
-        // generate temp home for our video
-        tempFilePath = path.join(os.tmpdir(), `instagram-${Date.now()}.mp4`)
-
-        console.log("2. Streaming the video directly to disk(Bypassing RAM)...");
-
-        // tell axios we want the stream not the whole file
-        const videoStreamResponse = await axios({
-            method: 'get',
-            url: rawVideoUrl,
-            responseType: 'stream',
-            timeout: 30000  // give it 30 seconds to startsending data
+        const job = await myQueue.add("process-instagram", {
+            instagramUrl,
+            userId: req.user
         })
 
-        // the god teir Ram Bypass 
-        await pipeline(
-            videoStreamResponse.data,
-            fs.createWriteStream(tempFilePath)
-        )
-
-        console.log("3. File successfully staged on SSD:", tempFilePath);
-
-        // the s3 stuff
-        const s3Key = `uploads/${req.user}/instagram/${Date.now()}.mp4`
-
-        const command = new PutObjectCommand({
-            Bucket: process.env.AWS_BUCKET_NAME,
-            Key: s3Key,
-            ContentType: 'video/mp4',
-            Body: fs.createReadStream(tempFilePath)
+        return res.status(202).json({
+            message: "Your video is being Processed",
+            jobId: job.id
         })
 
-        await s3Client.send(command)
-
-        console.log("S3 Smuggle Completed!!!");
-
-        // the gemini stuff nowww
-        const client = new GoogleGenAI({
-            apiKey:process.env.GEMINI_API_KEY,
-        })
-
-        // upload the file to gemini 
-        const uploadResult = await client.files.upload({
-            file: tempFilePath,
-            config: {
-                mimeType: 'video/mp4',
-                displayName: 'S3 Insta Reel Analysis'
-            }
-        })
-        console.log("5. Uploaded to Gemini. Waiting for it to process..");
-
-        //1. the polling loop thing 
-        let file = await client.files.get({ name: uploadResult.name })
-
-        // do the looping mfk
-
-        let retries = 0
-        const MAX_RETRIES = 30
-        while(file.state === "PROCESSING" && retries < MAX_RETRIES) {
-            console.log(`...PROCESSING {Attempt ${retries + 1}/${MAX_RETRIES}} `);
-            await new Promise((resolve) => setTimeout(resolve, 3000))
-            file = await client.files.get({ name: uploadResult.name })
-
-            retries++
-
-        }
-
-        if(file.state === "FAILED") {
-            throw new Error("Gemini processing failed.")
-        }
-
-        // check if its failed or not 
-        if(file.state === "PROCESSING") {
-            throw new Error("Gemini processing failed. The video might be corrupted.")
-        }
-
-        console.log("6. Video Ready. Asking Gemini for a summary...");
-
-        // 2. ask the gemini for the summary now
-        const response = await client.models.generateContent({
-            model: 'gemini-2.5-flash',
-            contents: [{
-                role: 'user',
-                parts: [
-                    { fileData: {
-                        fileUri: uploadResult.uri, 
-                        mimeType: uploadResult.mimeType
-                    } },
-                    {
-                        text: `Analyze this video and return ONLY a raw JSON object with two fields:
-                        "title": A catchy, short title for the video (max 5 words).
-                        "summary": A 3-line summary of what happens in the video.
-                        Do not include markdown formatting or backticks.`  
-                    }
-                ]
-            }]
-        })
-
-        console.log("7. Gemini Analysis Complete. Saving to Database...");
-
-        const cleanJson = response.text.replace(/```json/gi, '').replace(/```/gi, '').trim();
-
-        const aiData = JSON.parse(cleanJson);        
-
-        // 3. construct the permant 
-        const s3PublicUrl = `https://${process.env.AWS_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${s3Key}`;
-
-        // 4. save to mongoDB
-        const newSession = await VideoSession.create({
-            userId: req.user,
-            title: aiData.title,
-            sourceType: 'INSTAGRAM',
-            videoUrl: s3PublicUrl,
-            geminiFileUri: uploadResult.uri
-        })
-
-        await Message.create({
-            sessionId: newSession._id,
-            role: 'ai',
-            text: aiData.summary
-        })
-
-        // send it back to the clinet so we can test if step 1 works
-        return res.status(200).json({
-            message: "File downloaded!",
-            sessionId: newSession._id,
-            analysis: aiData.summary ,
-            playableUrl: rawVideoUrl,
-            fileData: {
-                uri: uploadResult.uri, 
-                mimeType: uploadResult.mimeType
-            }
-        })
-        
     } catch (error) {
         console.error("The Heist Failed:", error.message);
         res.status(500).json({ error: "RapidAPI decided to take a nap." });
-    } finally {
-        // check if file exist or not
-        if(tempFilePath && fs.existsSync(tempFilePath)) {
-            await fs.promises.unlink(tempFilePath)
-            console.log("....CLEANED THE DISK....");
-        }
     }
 }
 
