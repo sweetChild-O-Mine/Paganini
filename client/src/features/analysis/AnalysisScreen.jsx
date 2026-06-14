@@ -1,4 +1,8 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react'
+
+// 🔧 SWITCH HERE: comment one, uncomment the other
+const BASE_URL = 'http://localhost:3000'
+// const BASE_URL = 'https://13.203.76.37.nip.io'
 import axios from 'axios'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -92,7 +96,7 @@ export const AnalysisScreen = () => {
 
                 // 2. assl the backend for the history now 
                 const response = await axios.get(
-                    `https://13.203.76.37.nip.io/api/ai/session/${initialData.sessionId}`,
+                    `${BASE_URL}/api/ai/session/${initialData.sessionId}`,
                     {
                         headers: {
                             Authorization: `Bearer ${token}`
@@ -156,7 +160,7 @@ export const AnalysisScreen = () => {
 
             // now hit gemini 
             const response = await axios.post(
-                'https://13.203.76.37.nip.io/api/ai/chat',
+                `${BASE_URL}/api/ai/chat`,
                 // 2nd arg the body
                 {
                     prompt: input,

@@ -11,6 +11,7 @@ import fs from 'fs'
 import axios from 'axios'
 import { pipeline } from 'stream/promises'
 import { myQueue } from '../queues/videoQueue.js'
+import { error } from 'console'
 
 dotenv.config()
 
@@ -293,7 +294,6 @@ const processS3Video = async (req, res) => {
 }
 
 const analyzeInstagram = async (req, res) => {
-    let tempFilePath = null
     const { instagramUrl } = req.body
 
     try {
@@ -313,5 +313,54 @@ const analyzeInstagram = async (req, res) => {
     }
 }
 
+
+// the Polling route for job status 
+const getJobStatus = async (req, res) => {
+    try {
+        const { jobId } = req.params
+
+        // 1. fetch the job form redis
+        const job = await myQueue.getJob(jobId)
+
+        // check if someone sends a fake/expired jobId
+        if(!job) {
+            return res.status(404).json({
+                error: "Job not found"
+            })
+        }
+
+        // 3. get the current state of the job mfk 
+        const state = await job.getState()
+
+        // 4. write the reponse based on state
+        if (state === 'completed') {
+            return res.status(200).json({
+                status: 'completed',
+                sessionId: job.returnvalue.sessionId,
+                playableUrl: job.returnvalue.playableUrl,
+                fileData: job.returnvalue.fileData
+            })
+        }
+
+        if (state === "failed") {
+            // still status 200 coz the HTTP request itself was succeeded(we found the job and checked its state)....the failure is the JOB not the HTTP call....frontend reads the status field to know what happened
+            return res.status(200).json({
+                status: 'failed',
+                // BullMQ stores the error message here
+                error: job.failedReason
+            })
+        }
+
+        return res.status(200).json({
+            status: state
+        })
+    } catch (error) {
+        res.status(500).json({
+            error: "Failed to get job status"
+        })
+    }
+}
+
+
 // export this thing pweeeeasee
-export { chatWithVideo, analyzeUrl, getSessionHistory, getUserSession, deleteSession, generateUploadUrl, processS3Video, analyzeInstagram }
+export { chatWithVideo, analyzeUrl, getSessionHistory, getUserSession, deleteSession, generateUploadUrl, processS3Video, analyzeInstagram, getJobStatus }

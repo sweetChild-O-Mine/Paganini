@@ -161,6 +161,15 @@ const worker = new Worker(
                     text: aiData.summary
                 })
 
+                return {
+                    sessionId: newSession._id.toString(),
+                    playableUrl: s3PublicUrl,
+                    fileData: {
+                        uri: uploadResult.uri,
+                        mimeType: uploadResult.mimeType
+                    }
+                }
+
             } catch (error) {
                 throw error
             } finally {
@@ -251,7 +260,7 @@ const worker = new Worker(
                 // bypass the fking ram
                 await pipeline(
                     videoStreamResponse.data,
-                        fs.createWriteStream(tempFilePath)
+                    fs.createWriteStream(tempFilePath)
                 )
 
 
@@ -272,7 +281,7 @@ const worker = new Worker(
                 console.log("S3 Smuggle Comepleted!!");
 
                 // the gemini saga
-                const client = new GoogleGenAI ({
+                const client = new GoogleGenAI({
                     apiKey: process.env.GEMINI_API_KEY
                 })
 
@@ -357,18 +366,28 @@ const worker = new Worker(
 
                 // save the message
                 await Message.create({
-                    
-                        sessionId: newSession._id,
-                        role: 'ai',
-                        text: aiData.summary
 
-                    })
+                    sessionId: newSession._id,
+                    role: 'ai',
+                    text: aiData.summary
+
+                })
+
+                // the job.returnvalue which polling gonna be needing
+                return {
+                    sessionId: newSession._id.toString(),
+                    playableUrl: s3PublicUrl,
+                    fileData: {
+                        uri: uploadResult.uri,
+                        mimeType: uploadResult.mimeType
+                    }
+                }
 
 
             } catch (error) {
                 throw error
             } finally {
-                if(fs.existsSync(tempFilePath)) {
+                if (fs.existsSync(tempFilePath)) {
                     fs.unlinkSync(tempFilePath)
                 }
             }

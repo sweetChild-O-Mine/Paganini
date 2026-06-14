@@ -1,7 +1,7 @@
 import express from 'express'
 // import the gateKeeper 
 import { protect } from '../middlewares/authMiddleware.js'
-import { deleteSession, getSessionHistory, getUserSession, generateUploadUrl, processS3Video, analyzeInstagram } from '../controllers/aiController.js'
+import { deleteSession, getSessionHistory, getUserSession, generateUploadUrl, processS3Video, analyzeInstagram,getJobStatus } from '../controllers/aiController.js'
 
 // import the manager 
 import { chatWithVideo, analyzeUrl } from '../controllers/aiController.js'
@@ -30,6 +30,11 @@ router.post('/process-s3', protect, processS3Video)
 
 // route efor insta reels
 router.post('/analyze-instagram', protect, analyzeInstagram)
+
+
+// route to polling to checck the status of the job
+router.get('/job-status/:jobId', protect, getJobStatus)
+
 
 // export the router
 export default router;

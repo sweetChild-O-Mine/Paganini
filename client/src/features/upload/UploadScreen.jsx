@@ -1,4 +1,8 @@
 import React from 'react'
+
+// SWITCH HERE: comment one, uncomment the other
+const BASE_URL = 'http://localhost:3000'
+// const BASE_URL = 'https://13.203.76.37.nip.io'
 import { useState, useCallback, useMemo } from 'react'
 import { useDropzone } from 'react-dropzone'
 import axios from 'axios'
@@ -27,6 +31,39 @@ export const UploadScreen = () => {
 
   // get the token sirrr
   const token = useAuthStore((state) => state.token)
+
+  // helper that polls until the job is done 
+  // takes the jobId and token and return sesionId when done
+  const pollJobStatus = async (jobId, token) => {
+    // total no. of time we'll try before givign up 
+    const MAX_POLLS = 120 //120*3s = 3600 seconds or 6 min
+
+    for (let i = 0; i < MAX_POLLS; i++) {
+      // wiat for 3 seconds ebfore every check 
+      await new Promise(resolve => setTimeout(resolve, 3000))
+
+      const poll = await axios.get(
+        `${BASE_URL}/api/ai/job-status/${jobId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        }
+      )
+
+      if (poll.data.status === 'completed') {
+        return poll.data
+      }
+
+      if (poll.data.status === 'failed') {
+        throw new Error(poll.data.error || "Processing failed")
+      }
+
+      // if waiting or actinve then the loop will still KEEEEPP GOINNNGGGGG
+    }
+
+    throw new Error("Timed out waiting for video processing")
+  }
 
   // handleAnalyze funtion for
   const handleAnalyze = async () => {
@@ -57,7 +94,7 @@ export const UploadScreen = () => {
 
       // ask backend for the presigned url
       const urlResponse = await axios.post(
-        'https://13.203.76.37.nip.io/api/ai/upload-url',
+        `${BASE_URL}/api/ai/upload-url`,
         {
           fileName: file.name,
           fileType: file.type
@@ -82,9 +119,12 @@ export const UploadScreen = () => {
 
 
       // STEP 3 : Tell the backend to analyze the S3 file
-      toast.loading("Step 3/3: Gemini is Analyzing...", { id: "upload" });
-      const analysisResponse = await axios.post(
-        'https://13.203.76.37.nip.io/api/ai/process-s3',
+      toast.loading("Step 3/3: Queued! Processing in background...", { id: "upload" });
+
+
+
+      const queueResponse = await axios.post(
+        `${BASE_URL}/api/ai/process-s3`,
         {
           s3Key: s3Key,
           prompt: "Give me a 3 line summary of the whole video."
@@ -94,15 +134,24 @@ export const UploadScreen = () => {
         }
       )
 
-      toast.success("Analysis Complete!", {
-        id: 'upload'
-      })
+      const { jobId } = queueResponse.data
+
+      // poll until done
+      toast.loading("Processing video... this may take a minute ☕", { id: "upload" })
+
+      const { sessionId, playableUrl, fileData } = await pollJobStatus(jobId, token)
+
 
       // teleport to tha analysis screeen
       navigate('/analysis', {
         state: {
           file: file,
-          initialData: analysisResponse.data
+          initialData: {
+            sessionId: sessionId,
+            playableUrl: playableUrl,
+            fileData: fileData,
+            analysis: "Your video has been analyzed! Ask me anything 👇"
+          }
         }
       })
 
@@ -139,12 +188,12 @@ export const UploadScreen = () => {
       // 2.the smart check: is it insta or yt
       if (videoLink.includes('instagram.com')) {
 
-        endpoint = 'https://13.203.76.37.nip.io/api/ai/analyze-instagram';
+        endpoint = `${BASE_URL}/api/ai/analyze-instagram`;
         requestBody = { instagramUrl: videoLink }
 
       } else if (videoLink.includes('youtube.com') || videoLink.includes('youtu.be')) {
 
-        endpoint = 'https://13.203.76.37.nip.io/api/ai/analyze-url';
+        endpoint = `${BASE_URL}/api/ai/analyze-url`;
         requestBody = { videoLink: videoLink }
 
       } else {
@@ -165,14 +214,38 @@ export const UploadScreen = () => {
         }
       );
 
-      console.log("Link Analysis Response:", response.data)
+      // for insta
+      if (videoLink.includes('instagram.com')) {
+        // poll for insta
+        const { jobId } = response.data
 
-      // now pass the data to app.jsx
-      navigate('/analysis', {
-        state: {
-          file: null, initialData: response.data
-        }
-      })
+        // call the pollin fucntion
+        const { sessionId, playableUrl, fileData } = await pollJobStatus(jobId, token)
+
+        navigate('/analysis', {
+          state: {
+            file: file,
+            initialData: {
+              sessionId: sessionId,
+              playableUrl: playableUrl,
+              fileData: fileData,
+              analysis: "Your video has been analyzed! Ask me anything 👇"
+            }
+          }
+        })
+
+      } else {
+
+        console.log("Link Analysis Response:", response.data)
+
+        // now pass the data to app.jsx
+        navigate('/analysis', {
+          state: {
+            file: null, initialData: response.data
+          }
+        })
+      }
+
 
     } catch (error) {
 
