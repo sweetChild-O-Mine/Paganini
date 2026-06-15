@@ -142,6 +142,7 @@ export const UploadScreen = () => {
       const { sessionId, playableUrl, fileData } = await pollJobStatus(jobId, token)
 
 
+      toast.dismiss("upload")
       // teleport to tha analysis screeen
       navigate('/analysis', {
         state: {
@@ -222,6 +223,7 @@ export const UploadScreen = () => {
         // call the pollin fucntion
         const { sessionId, playableUrl, fileData } = await pollJobStatus(jobId, token)
 
+        toast.dismiss("upload")
         navigate('/analysis', {
           state: {
             file: file,

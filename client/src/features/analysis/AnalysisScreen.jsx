@@ -219,7 +219,7 @@ export const AnalysisScreen = () => {
 
     return (
 
-        <div className="w-full min-h-[calc(100dvh-56px)]  lg:h-full flex flex-col lg:flex-row overflow-hidden ">
+        <div className="w-full h-[calc(100dvh-56px)] flex flex-col lg:flex-row overflow-hidden">
 
             {/* left part of the screeen */}
             <div className=" lg:w-[72%] bg-black  flex flex-col items-center  ">
@@ -267,7 +267,7 @@ export const AnalysisScreen = () => {
             </div>
 
             {/* the right partt */}
-            <div className="w-full lg:w-[28%] bg-[#0f0f0f]  flex flex-col border-l border-white/5 h-full overflow-hidden  ">
+            <div className="w-full lg:w-[28%] bg-[#0f0f0f] flex flex-col border-l border-white/5 flex-1 lg:h-full overflow-hidden">
 
                 {/*heading kinda thing for chat box */}
                 <div className="font-semibold text-neutral-300 px-6 py-4 border-b border-white/5 flex items-center justify-between h-14 bg-[#0a0a0a] ">
