@@ -1,0 +1,36 @@
+name: Deploy to EC2 Production
+
+# Trigger
+on:
+    push:
+        branches:
+            - main # only run this when code is pushed to the main branch
+
+# The JOBS:- what should the robot do
+jobs:
+    deploy:
+        runs-on: ubuntu-latest # the robot spins up a temporary ubuntu linux
+
+        steps:
+            # step A the robot downloads a copy of your code 
+            - name: Checkout code
+              uses: actions/checkout@v3
+
+            # step B The robot uses the Keys(secrets) you saved to SSH into you EC2 server
+            # and runs the terminal commands you normally type mannually sirrrr
+            - name: SSH and Deploy
+              uses: appleboy/ssh-action@v1.0.3
+              with:
+                host: ${{ secrets.HOST }}
+                username: ${{ secrets.USERNAME }}
+                key: ${{ secrets.SSH_KEY }}
+
+                # these are the commands the robot till type into your ec2 terminal
+                script: |
+                    cd ~/Paganini/server
+                    git pull origin main
+                    npm install
+
+                    # Restart Express and Worker using PM2
+
+                    pm2 restart all

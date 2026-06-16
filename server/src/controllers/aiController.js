@@ -277,6 +277,12 @@ const processS3Video = async (req, res) => {
             s3Key,
             prompt,
             userId: req.user
+        }, {
+            attempts: 3,
+            backoff: {
+                type: 'exponential',
+                delay: 2000
+            }
         })
 
         return res.status(202).json({
@@ -300,6 +306,12 @@ const analyzeInstagram = async (req, res) => {
         const job = await myQueue.add("process-instagram", {
             instagramUrl,
             userId: req.user
+        }, {
+            attempts: 3,
+            backoff: {
+                type: 'exponential',
+                delay: 2000
+            }
         })
 
         return res.status(202).json({
