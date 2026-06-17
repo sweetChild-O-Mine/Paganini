@@ -61,7 +61,7 @@ export const LoginScreen = () => {
                         Email
                     </label>
                     <Input
-                        type={email}
+                        type="email"
                         placeholder='your@example.com'
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
@@ -73,7 +73,7 @@ export const LoginScreen = () => {
                 <div className="flex flex-col gap-2">
                     <label htmlFor='password' className="text-sm text-neutral-400">Password</label>
                     <Input
-                        type={password}
+                        type="password"
                         // placeholder="***********"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
