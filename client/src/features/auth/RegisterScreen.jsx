@@ -62,7 +62,7 @@ export const RegisterScreen = () => {
                 <div className="flex flex-col gap-2">
                     <label htmlFor="name" className="text-sm text-neutral-400">Name</label>
                     <Input
-                        type={name}
+                        type="name"
                         placeholder='Michael Jackson'
                         value={name}
                         onChange={(e) => setName(e.target.value)}
@@ -75,7 +75,7 @@ export const RegisterScreen = () => {
                 <div className="flex flex-col gap-2">
                     <label htmlFor="name" className="text-sm text-neutral-400">Email</label>
                     <Input
-                        type={email}
+                        type="email"
                         placeholder='michael@gmail.com'
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
@@ -88,7 +88,7 @@ export const RegisterScreen = () => {
                 <div className="flex flex-col gap-2">
                     <label htmlFor="name" className="text-sm text-neutral-400">Pasword</label>
                     <Input
-                        type={password}
+                        type="password"
                         // placeholder='Michael Jackson'
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}

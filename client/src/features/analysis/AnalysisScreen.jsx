@@ -9,7 +9,6 @@ import { Input } from "@/components/ui/input"
 import ReactMarkdown from 'react-markdown';
 import ReactPlayer from 'react-player'
 import { useLocation, useNavigate } from 'react-router-dom';
-import { jsPDF } from "jspdf";
 
 
 // managaer has sent someth that's why employee willrecienve it and he's doing it
