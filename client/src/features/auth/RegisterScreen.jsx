@@ -108,6 +108,7 @@ export const RegisterScreen = () => {
                     </div>
                 </div>
 
+
                 <Button
                     type="submit"
                     className="w-full mt-4 bg-white text-black cursor-pointer hover:bg-neutral-200"
