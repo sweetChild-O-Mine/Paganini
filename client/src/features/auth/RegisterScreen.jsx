@@ -5,12 +5,14 @@ import { useNavigate } from 'react-router-dom'
 import { useState } from 'react'
 import axios from 'axios'
 import { useAuthStore } from '../../store/authStore'
+import { Eye, EyeOff } from 'lucide-react'
 
 export const RegisterScreen = () => {
     // states for our input 
     const [name, setName] = useState('')
     const [email, setEmail] = useState("")
     const [password, setPassword] = useState('')
+    const [showPassword, setShowPassword] = useState(false)
 
     const navigate = useNavigate()
 
@@ -87,15 +89,25 @@ export const RegisterScreen = () => {
                 {/* div for password */}
                 <div className="flex flex-col gap-2">
                     <label htmlFor="name" className="text-sm text-neutral-400">Pasword</label>
-                    <Input
-                        type="password"
-                        // placeholder='Michael Jackson'
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        className="bg-neutral-800 border-neutral-700 text-white
-                required
-                " />
+                    <div className="relative">
+                        <Input
+                            type={showPassword ? "text" : "password"}
+                            // placeholder='Michael Jackson'
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            className="bg-neutral-800 border-neutral-700 text-white pr-10"
+                            required
+                        />
+                        <button
+                            type="button"
+                            onClick={() => setShowPassword(!showPassword)}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-white transition-colors cursor-pointer"
+                        >
+                            {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                        </button>
+                    </div>
                 </div>
+
 
                 <Button
                     type="submit"
