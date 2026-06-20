@@ -137,7 +137,7 @@ export const login = async (req, res) => {
 }
 
 export const googleLogin = async (req, res) =>{
-    console.log("react send us a token:", req.body.token);
+    // console.log("react send us a token:", req.body.token);
     try {
         const { token } = req.body
 
@@ -169,9 +169,9 @@ export const googleLogin = async (req, res) =>{
         }
 
         const paganiniToken = jwt.sign(
-            {id: user._id},
+            { userId: user._id },
             process.env.JWT_SECRET,
-            {expiresIn: '7d'}
+            { expiresIn: '7d' }
         )
 
         // send the exact same response as a normal login to frontend

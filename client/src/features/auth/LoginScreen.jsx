@@ -7,7 +7,6 @@ import axios from 'axios'
 import { useAuthStore } from '../../store/authStore'
 import { Eye, EyeOff } from 'lucide-react'
 import { GoogleLogin } from '@react-oauth/google'
-import axios from 'axios'
 
 export const LoginScreen = () => {
     // states for our input 
@@ -97,13 +96,27 @@ export const LoginScreen = () => {
 
                 <div className="mt-4 flex justify-center">
                     <GoogleLogin
-                        onSuccess={credenialResponse => {
-                            axios.post('http://localhost:3000/api/auth/google',
-                                {
-                                    token: credenialResponse.credential
-                                }
-                            )
-                            console.log("Success! Google sent us:", credenialResponse)
+                        onSuccess={async (credenialResponse) => {
+                            try {
+                                const response = await axios.post('https://13.203.76.37.nip.io/api/auth/google',
+                                    {
+                                        token: credenialResponse.credential
+                                    }
+                                )
+
+                                // grab the token from backend
+                                const paganiniToken= response.data.token
+
+                                // store it 
+                                login(paganiniToken)
+
+                                // sned the person 
+                                navigate('/')
+                                console.log("Success! Google sent us:", credenialResponse)
+
+                            } catch (error) {
+                                console.error("Google Login Backend Error:", error)
+                            }
                         }}
                         onError={() => {
                             console.log("Login Failed")
