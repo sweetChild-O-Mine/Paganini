@@ -6,6 +6,7 @@ import { useState } from 'react'
 import axios from 'axios'
 import { useAuthStore } from '../../store/authStore'
 import { Eye, EyeOff } from 'lucide-react'
+import { GoogleLogin } from '@react-oauth/google'
 
 export const LoginScreen = () => {
     // states for our input 
@@ -93,12 +94,45 @@ export const LoginScreen = () => {
                     </div>
                 </div>
 
+                <div className="mt-4 flex justify-center">
+                    <GoogleLogin
+                        onSuccess={async (credenialResponse) => {
+                            try {
+                                const response = await axios.post('https://13.203.76.37.nip.io/api/auth/google',
+                                    {
+                                        token: credenialResponse.credential
+                                    }
+                                )
+
+                                // grab the token from backend
+                                const paganiniToken= response.data.token
+
+                                // store it 
+                                login(paganiniToken)
+
+                                // sned the person 
+                                navigate('/')
+                                console.log("Success! Google sent us:", credenialResponse)
+
+                            } catch (error) {
+                                console.error("Google Login Backend Error:", error)
+                            }
+                        }}
+                        onError={() => {
+                            console.log("Login Failed")
+                        }}
+                        theme='filled_black'
+                    />
+                </div>
+
                 <Button
                     type="submit"
                     className="w-full mt-4 bg-white text-black cursor-pointer hover:bg-neutral-200"
                 >
                     Sign In
                 </Button>
+
+
 
                 <p className="mt-6 text-center text-sm text-neutral-500 ">
                     Don't have an account? <span
