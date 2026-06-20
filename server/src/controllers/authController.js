@@ -1,7 +1,13 @@
 import {User} from "../models/User.js"
 import bcrypt from "bcryptjs"
 import jwt from "jsonwebtoken"
+import { OAuth2Client } from 'google-auth-library'
+import crypto from 'crypto'
 
+// googleClient 
+const googleClient = new OAuth2Client({
+    client_id: process.env.GOOGLE_CLIENT_ID
+})
 
 export const register = async (req, res) => {
 
@@ -130,3 +136,59 @@ export const login = async (req, res) => {
     }
 }
 
+export const googleLogin = async (req, res) =>{
+    console.log("react send us a token:", req.body.token);
+    try {
+        const { token } = req.body
+
+        const ticket = await googleClient.verifyIdToken({
+            idToken: token,
+            audience: process.env.GOOGLE_CLIENT_ID,
+        })
+
+        // extract 
+        const payload =ticket.getPayload()
+        const email = payload.email
+        const name = payload.name
+
+        console.log("Verified Google User:", name, email);
+
+        // check if the user exist in mognodb or not 
+        let user = await User.findOne({ email })
+
+        // 2. if they dont then add a brand new user and create them 
+        if(!user) {
+            const randomPassword = crypto.randomBytes(16).toString('hex')
+            const hashedPassword = await bcrypt.hash(randomPassword, 10)
+
+            user = await User.create({
+                name: name,
+                email: email,
+                password: hashedPassword
+            })
+        }
+
+        const paganiniToken = jwt.sign(
+            {id: user._id},
+            process.env.JWT_SECRET,
+            {expiresIn: '7d'}
+        )
+
+        // send the exact same response as a normal login to frontend
+        res.status(200).json({
+            message: "Google Login Successful",
+            token: paganiniToken,
+            user: {
+                id: user._id,
+                name: user.name,
+                email: user.email
+            }
+        })
+
+    } catch (error) {
+        console.log("Google Auth Error:", error);
+        res.status(401).json({
+            error: "Invalid Google Token"
+        })
+    }
+}

@@ -6,6 +6,8 @@ import { useState } from 'react'
 import axios from 'axios'
 import { useAuthStore } from '../../store/authStore'
 import { Eye, EyeOff } from 'lucide-react'
+import { GoogleLogin } from '@react-oauth/google'
+import axios from 'axios'
 
 export const LoginScreen = () => {
     // states for our input 
@@ -93,12 +95,31 @@ export const LoginScreen = () => {
                     </div>
                 </div>
 
+                <div className="mt-4 flex justify-center">
+                    <GoogleLogin
+                        onSuccess={credenialResponse => {
+                            axios.post('http://localhost:3000/api/auth/google',
+                                {
+                                    token: credenialResponse.credential
+                                }
+                            )
+                            console.log("Success! Google sent us:", credenialResponse)
+                        }}
+                        onError={() => {
+                            console.log("Login Failed")
+                        }}
+                        theme='filled_black'
+                    />
+                </div>
+
                 <Button
                     type="submit"
                     className="w-full mt-4 bg-white text-black cursor-pointer hover:bg-neutral-200"
                 >
                     Sign In
                 </Button>
+
+
 
                 <p className="mt-6 text-center text-sm text-neutral-500 ">
                     Don't have an account? <span
