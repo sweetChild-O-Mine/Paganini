@@ -128,7 +128,7 @@ export const RegisterScreen = () => {
 
                                 // sned the person 
                                 navigate('/')
-                                console.log("Success! Google sent us:", credenialResponse)
+                                // console.log("Success! Google sent us:", credenialResponse)
 
                             } catch (error) {
                                 console.error("Google Login Backend Error:", error)
