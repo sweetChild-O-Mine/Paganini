@@ -1,8 +1,8 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react'
 
 // 🔧 SWITCH HERE: comment one, uncomment the other
-const BASE_URL = 'http://localhost:3000'
-// const BASE_URL = 'https://13.203.76.37.nip.io'
+// const BASE_URL = 'http://localhost:3000'
+const BASE_URL = 'https://13.203.76.37.nip.io'
 import axios from 'axios'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
