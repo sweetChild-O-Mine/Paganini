@@ -241,10 +241,26 @@ const worker = new Worker(
                 // extract the url form the response sir 
                 const rawVideoUrl = data[0].urls[0].url
 
-                console.log(rawVideoUrl);
+                console.log("Raw URL from RapidAPI:", rawVideoUrl);
 
-                // generate temp path for our video
-                tempFilePath = path.join(os.tmpdir(), `instagram-${Date.now()}.mp4`)
+                // Dynamically determine if it's a video or image
+                const isVideo = rawVideoUrl.includes('.mp4');
+                let extension = '.webp';
+                let mimeType = 'image/webp';
+
+                if (isVideo) {
+                    extension = '.mp4';
+                    mimeType = 'video/mp4';
+                } else if (rawVideoUrl.includes('.jpg') || rawVideoUrl.includes('.jpeg')) {
+                    extension = '.jpg';
+                    mimeType = 'image/jpeg';
+                } else if (rawVideoUrl.includes('.png')) {
+                    extension = '.png';
+                    mimeType = 'image/png';
+                }
+
+                // generate temp path for our media
+                tempFilePath = path.join(os.tmpdir(), `instagram-${Date.now()}${extension}`)
 
 
                 console.log("2. Streaming the video directly to disk(Bypassing RAM)...");
@@ -267,12 +283,12 @@ const worker = new Worker(
                 console.log("3. File successfully staged on SSD:", tempFilePath);
 
 
-                const s3Key = `uploads/${job.data.userId}/instagram/${Date.now()}.mp4`
+                const s3Key = `uploads/${job.data.userId}/instagram/${Date.now()}${extension}`
 
                 const command = new PutObjectCommand({
                     Bucket: process.env.AWS_BUCKET_NAME,
                     Key: s3Key,
-                    ContentType: 'video/mp4',
+                    ContentType: mimeType,
                     Body: fs.createReadStream(tempFilePath)
                 })
 
@@ -289,8 +305,8 @@ const worker = new Worker(
                 const uploadResult = await client.files.upload({
                     file: tempFilePath,
                     config: {
-                        mimeType: 'video/mp4',
-                        displayName: 'S3 Insta Reel Analysis'
+                        mimeType: mimeType,
+                        displayName: 'S3 Insta Post Analysis'
                     }
                 })
 
@@ -336,9 +352,9 @@ const worker = new Worker(
                                 }
                             },
                             {
-                                text: `Analyze this video and return ONLY a raw JSON object with two fields:
-                        "title": A catchy, short title for the video (max 5 words).
-                        "summary": A 3-line summary of what happens in the video.
+                                text: `Analyze this Instagram post and return ONLY a raw JSON object with two fields:
+                        "title": A catchy, short title for the post (max 5 words).
+                        "summary": A 3-line summary of what happens in the post.
                         Do not include markdown formatting or backticks.`
                             }
                         ]
@@ -395,7 +411,8 @@ const worker = new Worker(
     },
     {
         connection,
-        concurrency: 1      //ram prices dekhke hain bc?????
+        concurrency: 1,      //ram prices dekhke hain bc?????
+        lockDuration: 300000 // 5 minutes to prevent Gemini API from stalling the job
     }
 
 )
