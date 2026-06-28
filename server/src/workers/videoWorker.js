@@ -226,7 +226,7 @@ const worker = new Worker(
                             'x-rapidapi-host': 'instagram120.p.rapidapi.com', // Tera RapidAPI host
                             'Content-Type': 'application/json'
                         },
-                        timeout: 10000
+                        timeout: 30000
                     }
                 )
 
